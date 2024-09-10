@@ -34,7 +34,18 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const skuCodes = yield server_1.prisma.skuCode.findMany({
             where: search ? { name: { contains: search } } : {},
             include: {
-                item: true,
+                item: {
+                    select: {
+                        name: true,
+                        uom: true,
+                    },
+                    include: {
+                        model: {
+                            select: { name: true },
+                            include: { category: { select: { name: true } } },
+                        },
+                    },
+                },
             },
         });
         res.send(skuCodes);

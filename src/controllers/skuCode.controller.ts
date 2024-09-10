@@ -33,7 +33,18 @@ const get = async (
     const skuCodes = await prisma.skuCode.findMany({
       where: search ? { name: { contains: search } } : {},
       include: {
-        item: true,
+        item: {
+          select: {
+            name: true,
+            uom: true,
+          },
+          include: {
+            model: {
+              select: { name: true },
+              include: { category: { select: { name: true } } },
+            },
+          },
+        },
       },
     });
     res.send(skuCodes);

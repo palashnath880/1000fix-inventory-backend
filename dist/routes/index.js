@@ -9,6 +9,7 @@ const branch_route_1 = __importDefault(require("./branch.route"));
 const category_route_1 = __importDefault(require("./category.route"));
 const model_route_1 = __importDefault(require("./model.route"));
 const item_route_1 = __importDefault(require("./item.route"));
+const skuCode_route_1 = __importDefault(require("./skuCode.route"));
 const routes = (0, express_1.Router)();
 // user route
 routes.use("/user", user_route_1.default);
@@ -21,5 +22,5 @@ routes.use("/model", model_route_1.default);
 // item route
 routes.use("/item", item_route_1.default);
 // item route
-routes.use("/sku-code", item_route_1.default);
+routes.use("/sku-code", skuCode_route_1.default);
 exports.default = routes;
