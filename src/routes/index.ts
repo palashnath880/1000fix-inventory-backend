@@ -1,5 +1,13 @@
 import { Router } from "express";
+import userRouter from "./user.route";
+import branchRouter from "./branch.route";
 
-const router = Router();
+const routes = Router();
 
-export default router;
+// user route
+routes.use("/user", userRouter);
+
+// branch route
+routes.use("/branch", branchRouter);
+
+export default routes;
