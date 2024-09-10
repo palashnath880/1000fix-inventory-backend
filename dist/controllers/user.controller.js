@@ -9,17 +9,71 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const server_1 = require("../server");
+const user_utils_1 = require("../utils/user.utils");
 // user create controller
 const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const user = req.body;
+        // get user by email
+        const getUser = yield server_1.prisma.user.findUnique({
+            where: { email: user.email },
+        });
+        // if user exists at this user.email
+        if (getUser) {
+            return res.status(409).send({ message: "User exists at this email" });
+        }
+        // generate username
+        const username = yield (0, user_utils_1.generateUsername)(user.name);
+        user.username = username;
+        // hash password
+        const password = yield (0, user_utils_1.hashPassword)(user.password);
+        user.password = password;
+        // insert user
+        const result = yield server_1.prisma.user.create({
+            data: user,
+        });
+        res.status(201).send(result);
     }
     catch (err) {
-        res.send(err).status(400);
+        res.status(400).send(err);
     }
 });
 // get all user
 const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
+        const page = ((_a = req.query) === null || _a === void 0 ? void 0 : _a.page) ? parseInt(req.query.page) : 1;
+        const limit = ((_b = req.query) === null || _b === void 0 ? void 0 : _b.limit) ? parseInt(req.query.limit) : 50;
+        const search = req.query.search;
+        const skip = (page - 1) * limit;
+        // get total count
+        const count = yield server_1.prisma.user.count({
+            where: search
+                ? {
+                    OR: [
+                        { name: { contains: search } },
+                        { email: { contains: search } },
+                    ],
+                }
+                : {},
+        });
+        // get users
+        const users = yield server_1.prisma.user.findMany({
+            where: search
+                ? {
+                    OR: [
+                        { name: { contains: search } },
+                        { email: { contains: search } },
+                    ],
+                }
+                : {},
+            orderBy: { name: "asc" },
+            include: { branch: true },
+            skip: skip,
+            take: limit,
+        });
+        res.send({ count: count, data: users });
     }
     catch (err) {
         res.send(err).status(400);
@@ -28,6 +82,10 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 // get by id
 const getById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const userId = req.params.userId;
+        console.log(userId);
+        const user = yield server_1.prisma.user.findUnique({ where: { id: userId } });
+        res.send(user);
     }
     catch (err) {
         res.send(err).status(400);
@@ -36,7 +94,13 @@ const getById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 // user update controller
 const update = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        //   const userId = req
+        const userId = req.params.userId;
+        const data = req.body;
+        const result = yield server_1.prisma.user.update({
+            data: data,
+            where: { id: userId },
+        });
+        res.send(result);
     }
     catch (err) {
         res.send(err).status(400);
@@ -45,6 +109,9 @@ const update = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 // user delete controller
 const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const userId = req.params.userId;
+        const result = yield server_1.prisma.user.delete({ where: { id: userId } });
+        res.send(result);
     }
     catch (err) {
         res.send(err).status(400);

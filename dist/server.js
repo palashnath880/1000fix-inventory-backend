@@ -12,16 +12,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.prisma = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const routes_1 = __importDefault(require("./routes"));
 const client_1 = require("@prisma/client");
 const PORT = process.env.PORT || 5000;
 const app = (0, express_1.default)();
-const prisma = new client_1.PrismaClient();
+exports.prisma = new client_1.PrismaClient();
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         app.use(express_1.default.json());
+        app.use(express_1.default.urlencoded());
         app.use((0, cors_1.default)());
         app.use(routes_1.default);
         app.listen(PORT, () => {
@@ -31,10 +33,10 @@ function main() {
 }
 main()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield prisma.$connect();
+    yield exports.prisma.$connect();
 }))
     .catch((err) => __awaiter(void 0, void 0, void 0, function* () {
     console.error(`prisma error`, err);
-    yield prisma.$disconnect();
+    yield exports.prisma.$disconnect();
     process.exit(1);
 }));

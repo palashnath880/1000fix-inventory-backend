@@ -13,9 +13,9 @@ branchRouter.get(`/`, branchController.get);
 // branchRouter.get(`/:userId`, userController.getById);
 
 // put route
-branchRouter.put(`/:userId`, branchController.update);
+branchRouter.put(`/:branchId`, branchController.update);
 
 // delete route
-branchRouter.delete("/:userId", branchController.deleteBranch);
+branchRouter.delete("/:branchId", branchController.deleteBranch);
 
 export default branchRouter;

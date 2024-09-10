@@ -13,7 +13,7 @@ const create = async (
       where: { name: branch.name },
     });
     if (getBranch) {
-      res.status(409).send({ message: "This branch already exists" });
+      return res.status(409).send({ message: "This branch already exists" });
     }
 
     // insert branch
