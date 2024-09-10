@@ -4,6 +4,7 @@ import branchRouter from "./branch.route";
 import cateRouter from "./category.route";
 import modelRouter from "./model.route";
 import itemRouter from "./item.route";
+import skuRouter from "./skuCode.route";
 
 const routes = Router();
 
@@ -21,5 +22,8 @@ routes.use("/model", modelRouter);
 
 // item route
 routes.use("/item", itemRouter);
+
+// item route
+routes.use("/sku-code", skuRouter);
 
 export default routes;
