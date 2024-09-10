@@ -6,6 +6,7 @@ import modelRouter from "./model.route";
 import itemRouter from "./item.route";
 import skuRouter from "./skuCode.route";
 import stockRouter from "./stock.route";
+import jobRouter from "./job.route";
 
 const routes = Router();
 
@@ -29,5 +30,8 @@ routes.use("/sku-code", skuRouter);
 
 // stock route
 routes.use("/stock", stockRouter);
+
+// stock route
+routes.use("/job", jobRouter);
 
 export default routes;
