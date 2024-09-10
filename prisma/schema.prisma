@@ -1,0 +1,151 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  manager
+  engineer
+}
+
+enum StockType {
+  entry
+  transfer
+  engineer
+  return
+  defective
+}
+
+enum StockStatus {
+  open
+  approved
+  received
+  rejected
+  returned
+}
+
+enum SellFrom {
+  branch
+  engineer
+}
+
+model Branch {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  address    String 
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  receiver   Stock[] @relation("receiver")
+  sender     Stock[] @relation("sender")
+  users      User[] 
+  job        Job[]
+}
+
+model User{
+  id        String   @id @default(uuid())
+  name      String 
+  email     String   @unique
+  username  String   @unique
+  password  String
+  role      Role
+  branch    Branch? @relation(fields: [branchId],references: [id])
+  branchId  String?
+  jobs      Job[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Category{
+  id        String   @id @default(uuid())
+  name      String   @unique
+  models    Model[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Model {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+  items      Item[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+}
+
+model Item {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  uom        String  
+  model      Model    @relation(fields: [modelId], references: [id])
+  modelId    String
+  skuCodes   SkuCode[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+}
+
+model SkuCode {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  isDefective Boolean
+  item        Item     @relation(fields: [itemId], references: [id])
+  itemId      String
+  stocks      Stock[]
+  jobItems    JobItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+}
+
+model Stock {
+  id         String   @id @default(uuid())
+  type       StockType
+  status     StockStatus @default(open)
+  price      Float?  @default(0)
+  quantity   Float?  @default(0)
+  rackNo     String?
+  note       String?
+  challan    String?
+  sender     Branch? @relation("sender", fields: [senderId],references: [id])
+  senderId   String?
+  receiver   Branch? @relation("receiver", fields: [receiverId],references: [id])
+  receiverId String? 
+  skuCode    SkuCode @relation(fields: [skuCodeId],references: [id])
+  skuCodeId  String  
+  endAt      DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) 
+}
+
+model Job {
+  id          String @id @default(uuid())
+  jobNo       String
+  imeiNo      String
+  serviceType String
+  sellFrom    SellFrom   
+  branch      Branch? @relation(fields: [branchId],references: [id])
+  branchId    String?
+  engineer    User? @relation(fields: [engineerId],references: [id])
+  engineerId  String?
+  items       JobItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) 
+}
+
+model JobItem {
+  id          String @id @default(uuid())
+  price       Float
+  quantity    Float
+  skuCode     SkuCode @relation(fields: [skuCodeId], references: [id])
+  skuCodeId   String
+  job         Job @relation(fields: [jobId], references: [id])
+  jobId       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+	@@map("JobItems")
+}
