@@ -6,10 +6,11 @@ import { PrismaClient } from "@prisma/client";
 const PORT = process.env.PORT || 5000;
 const app = express();
 
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 
 async function main() {
   app.use(express.json());
+  app.use(express.urlencoded());
   app.use(cors());
 
   app.use(routes);
