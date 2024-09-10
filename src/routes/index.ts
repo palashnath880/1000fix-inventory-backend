@@ -10,4 +10,7 @@ routes.use("/user", userRouter);
 // branch route
 routes.use("/branch", branchRouter);
 
+// category route
+routes.use("/category", branchRouter);
+
 export default routes;
