@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authRouter from "./auth.route";
 import userRouter from "./user.route";
 import branchRouter from "./branch.route";
 import cateRouter from "./category.route";
@@ -9,6 +10,9 @@ import stockRouter from "./stock.route";
 import jobRouter from "./job.route";
 
 const routes = Router();
+
+// auth route
+routes.use("/auth", authRouter);
 
 // user route
 routes.use("/user", userRouter);
