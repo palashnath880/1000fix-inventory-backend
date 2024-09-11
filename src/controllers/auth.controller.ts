@@ -47,7 +47,7 @@ const login = async (
           res.send({ token });
         }
       } else {
-        return res.status(409).send({ message: "Incorrect password" });
+        return res.status(401).send({ message: "Incorrect password" });
       }
     } else {
       return res.status(409).send({ message: "User not found" });
