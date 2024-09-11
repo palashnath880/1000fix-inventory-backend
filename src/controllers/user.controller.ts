@@ -68,7 +68,7 @@ const get = async (
           }
         : {},
       orderBy: { name: "asc" },
-      include: { branch: true },
+      include: { branch: { select: { name: true, id: true } } },
     });
 
     res.send(users);

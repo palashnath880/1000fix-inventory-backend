@@ -54,7 +54,7 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 }
                 : {},
             orderBy: { name: "asc" },
-            include: { branch: true },
+            include: { branch: { select: { name: true, id: true } } },
         });
         res.send(users);
     }
