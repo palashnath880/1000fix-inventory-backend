@@ -25,19 +25,6 @@ const login = async (
       if (await compare(password, user.password)) {
         const getUser = await prisma.user.findUnique({
           where: { id: user.id },
-          select: {
-            branch: {
-              select: {
-                name: true,
-                address: true,
-              },
-            },
-            branchId: true,
-            name: true,
-            email: true,
-            role: true,
-            username: true,
-          },
         });
         if (getUser) {
           // generate jwt token
@@ -60,6 +47,7 @@ const login = async (
 const loadUser = async (req: Request, res: Response) => {
   try {
     const userId = req.cookies?.user?.id;
+
     const user: any = await prisma.user.findUnique({
       where: { id: userId },
       include: { branch: true },
