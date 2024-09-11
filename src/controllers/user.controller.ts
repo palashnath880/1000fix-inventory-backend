@@ -45,6 +45,7 @@ const create = async (
 
     res.status(201).send(result);
   } catch (err) {
+    console.log(err);
     res.status(400).send(err);
   }
 };

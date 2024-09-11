@@ -15,7 +15,7 @@ const bcrypt_1 = require("bcrypt");
 const generateUsername = (name) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let username = name.toLowerCase();
-        username = username.replace(/\s/g, "_");
+        username = username.replace(/\s/g, "");
         if (username.length > 10) {
             username = username.substring(0, 10);
         }

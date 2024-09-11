@@ -4,7 +4,7 @@ import { genSalt, hash } from "bcrypt";
 const generateUsername = async (name: string) => {
   try {
     let username = name.toLowerCase();
-    username = username.replace(/\s/g, "_");
+    username = username.replace(/\s/g, "");
     if (username.length > 10) {
       username = username.substring(0, 10);
     }
