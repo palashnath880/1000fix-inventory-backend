@@ -51,27 +51,11 @@ const create = async (
 
 // get all user
 const get = async (
-  req: Request<{}, {}, {}, { page: string; limit: string; search: string }>,
+  req: Request<{}, {}, {}, { search: string }>,
   res: Response
 ) => {
   try {
-    const page = req.query?.page ? parseInt(req.query.page) : 1;
-    const limit = req.query?.limit ? parseInt(req.query.limit) : 50;
     const search = req.query.search;
-
-    const skip = (page - 1) * limit;
-
-    // get total count
-    const count = await prisma.user.count({
-      where: search
-        ? {
-            OR: [
-              { name: { contains: search } },
-              { email: { contains: search } },
-            ],
-          }
-        : {},
-    });
 
     // get users
     const users = await prisma.user.findMany({
@@ -85,11 +69,9 @@ const get = async (
         : {},
       orderBy: { name: "asc" },
       include: { branch: true },
-      skip: skip,
-      take: limit,
     });
 
-    res.send({ count: count, data: users });
+    res.send(users);
   } catch (err) {
     res.send(err).status(400);
   }

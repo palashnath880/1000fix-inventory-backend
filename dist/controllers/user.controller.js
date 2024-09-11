@@ -41,23 +41,8 @@ const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 // get all user
 const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
     try {
-        const page = ((_a = req.query) === null || _a === void 0 ? void 0 : _a.page) ? parseInt(req.query.page) : 1;
-        const limit = ((_b = req.query) === null || _b === void 0 ? void 0 : _b.limit) ? parseInt(req.query.limit) : 50;
         const search = req.query.search;
-        const skip = (page - 1) * limit;
-        // get total count
-        const count = yield server_1.prisma.user.count({
-            where: search
-                ? {
-                    OR: [
-                        { name: { contains: search } },
-                        { email: { contains: search } },
-                    ],
-                }
-                : {},
-        });
         // get users
         const users = yield server_1.prisma.user.findMany({
             where: search
@@ -70,10 +55,8 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 : {},
             orderBy: { name: "asc" },
             include: { branch: true },
-            skip: skip,
-            take: limit,
         });
-        res.send({ count: count, data: users });
+        res.send(users);
     }
     catch (err) {
         res.send(err).status(400);

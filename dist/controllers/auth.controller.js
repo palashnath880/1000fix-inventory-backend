@@ -17,7 +17,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const login = req.body.login;
         const password = req.body.password;
-        const SECRET_KEY = process.env.JWT_SECRET_KEY;
+        const SECRET_KEY = process.env.JWT_SECRET_KEY || "";
         // get user
         const getUsers = yield server_1.prisma.user.findMany({
             where: {
@@ -30,28 +30,17 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             if (yield (0, bcrypt_1.compare)(password, user.password)) {
                 const getUser = yield server_1.prisma.user.findUnique({
                     where: { id: user.id },
-                    select: {
-                        branch: {
-                            select: {
-                                name: true,
-                                address: true,
-                            },
-                        },
-                        branchId: true,
-                        name: true,
-                        email: true,
-                        role: true,
-                        username: true,
-                    },
                 });
-                // generate jwt token
-                const token = yield (0, jsonwebtoken_1.sign)(getUser, SECRET_KEY, {
-                    expiresIn: 60 * 60 * 24 * 7,
-                });
-                res.send({ token });
+                if (getUser) {
+                    // generate jwt token
+                    const token = yield (0, jsonwebtoken_1.sign)(getUser, SECRET_KEY, {
+                        expiresIn: 60 * 60 * 24 * 7,
+                    });
+                    res.send({ token });
+                }
             }
             else {
-                return res.status(409).send({ message: "Incorrect password" });
+                return res.status(401).send({ message: "Incorrect password" });
             }
         }
         else {

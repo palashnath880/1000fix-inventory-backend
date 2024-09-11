@@ -13,23 +13,24 @@ const item_route_1 = __importDefault(require("./item.route"));
 const skuCode_route_1 = __importDefault(require("./skuCode.route"));
 const stock_route_1 = __importDefault(require("./stock.route"));
 const job_route_1 = __importDefault(require("./job.route"));
+const verifyToken_1 = require("../middlewares/verifyToken");
 const routes = (0, express_1.Router)();
 // auth route
 routes.use("/auth", auth_route_1.default);
 // user route
-routes.use("/user", user_route_1.default);
+routes.use("/user", verifyToken_1.verifyAuthToken, user_route_1.default);
 // branch route
-routes.use("/branch", branch_route_1.default);
+routes.use("/branch", verifyToken_1.verifyAuthToken, branch_route_1.default);
 // category route
-routes.use("/category", category_route_1.default);
+routes.use("/category", verifyToken_1.verifyAuthToken, category_route_1.default);
 // model route
-routes.use("/model", model_route_1.default);
+routes.use("/model", verifyToken_1.verifyAuthToken, model_route_1.default);
 // item route
-routes.use("/item", item_route_1.default);
+routes.use("/item", verifyToken_1.verifyAuthToken, item_route_1.default);
 // item route
-routes.use("/sku-code", skuCode_route_1.default);
+routes.use("/sku-code", verifyToken_1.verifyAuthToken, skuCode_route_1.default);
 // stock route
-routes.use("/stock", stock_route_1.default);
+routes.use("/stock", verifyToken_1.verifyAuthToken, stock_route_1.default);
 // stock route
-routes.use("/job", job_route_1.default);
+routes.use("/job", verifyToken_1.verifyAuthToken, job_route_1.default);
 exports.default = routes;
