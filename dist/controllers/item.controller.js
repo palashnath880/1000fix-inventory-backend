@@ -33,6 +33,13 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const search = req.query.search;
         const items = yield server_1.prisma.item.findMany({
             where: search ? { name: { contains: search } } : {},
+            include: {
+                model: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
         });
         res.send(items);
     }

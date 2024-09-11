@@ -11,7 +11,7 @@ const login = async (
   try {
     const login = req.body.login;
     const password = req.body.password;
-    const SECRET_KEY = process.env.JWT_SECRET_KEY;
+    const SECRET_KEY: string = process.env.JWT_SECRET_KEY || "";
 
     // get user
     const getUsers = await prisma.user.findMany({
@@ -39,12 +39,13 @@ const login = async (
             username: true,
           },
         });
-
-        // generate jwt token
-        const token = await sign(getUser, SECRET_KEY, {
-          expiresIn: 60 * 60 * 24 * 7,
-        });
-        res.send({ token });
+        if (getUser) {
+          // generate jwt token
+          const token = await sign(getUser, SECRET_KEY, {
+            expiresIn: 60 * 60 * 24 * 7,
+          });
+          res.send({ token });
+        }
       } else {
         return res.status(409).send({ message: "Incorrect password" });
       }
@@ -59,13 +60,13 @@ const login = async (
 const loadUser = async (req: Request, res: Response) => {
   try {
     const userId = req.cookies?.user?.id;
-    const user = await prisma.user.findUnique({
+    const user: any = await prisma.user.findUnique({
       where: { id: userId },
       include: { branch: true },
     });
     if (user) {
       const keys = Object.keys(user);
-      const newObj = {};
+      const newObj: any = {};
       for (const key of keys) {
         if (key !== "password") {
           newObj[key] = user[key];
