@@ -9,12 +9,13 @@ const verifyAuthToken = async (
   try {
     const token = req.headers.authorization;
     const SECRET_KEY: string = process.env.JWT_SECRET_KEY || "";
+
     if (token) {
       const authToken = token.split(" ")[1];
       const decoded = await verify(authToken, SECRET_KEY);
       if (decoded) {
-        req.cookies.user = decoded;
-        return next();
+        req.cookies = { user: decoded };
+        next();
       } else {
         return res.status(401).send({ message: `Unauthorized` });
       }
@@ -22,6 +23,7 @@ const verifyAuthToken = async (
       return res.status(401).send({ message: `Unauthorized` });
     }
   } catch (err) {
+    console.log(err);
     res.status(401).send({ message: `Unauthorized`, err });
   }
 };
