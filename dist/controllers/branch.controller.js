@@ -40,13 +40,17 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     ],
                 }
                 : {},
+            include: {
+                users: {
+                    select: { name: true, id: true, email: true, username: true },
+                },
+            },
         });
         res.send(branches);
     }
     catch (err) { }
 });
 const update = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
         const branchId = req.params.branchId;
         const data = req.body;
@@ -55,7 +59,7 @@ const update = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             updateData.name = data === null || data === void 0 ? void 0 : data.name;
         if (data === null || data === void 0 ? void 0 : data.address)
             updateData.address = data === null || data === void 0 ? void 0 : data.address;
-        if (Array.isArray(data === null || data === void 0 ? void 0 : data.users) && ((_a = data === null || data === void 0 ? void 0 : data.users) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+        if (Array.isArray(data === null || data === void 0 ? void 0 : data.users)) {
             // update branchId is null which users are deselected
             yield server_1.prisma.user.updateMany({
                 data: { branchId: null },

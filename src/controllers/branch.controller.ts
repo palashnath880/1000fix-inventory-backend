@@ -40,6 +40,11 @@ const get = async (
             ],
           }
         : {},
+      include: {
+        users: {
+          select: { name: true, id: true, email: true, username: true },
+        },
+      },
     });
 
     res.send(branches);
@@ -62,7 +67,7 @@ const update = async (
     if (data?.name) updateData.name = data?.name;
     if (data?.address) updateData.address = data?.address;
 
-    if (Array.isArray(data?.users) && data?.users?.length > 0) {
+    if (Array.isArray(data?.users)) {
       // update branchId is null which users are deselected
       await prisma.user.updateMany({
         data: { branchId: null },
