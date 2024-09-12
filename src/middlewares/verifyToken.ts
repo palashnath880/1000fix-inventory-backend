@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { verify } from "jsonwebtoken";
+import { prisma } from "../server";
 
 const verifyAuthToken = async (
   req: Request,
@@ -12,9 +13,11 @@ const verifyAuthToken = async (
 
     if (token) {
       const authToken = token.split(" ")[1];
-      const decoded = await verify(authToken, SECRET_KEY);
+      const decoded: any = await verify(authToken, SECRET_KEY);
       if (decoded) {
-        req.cookies = { user: decoded };
+        const userId = decoded?.id;
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        req.cookies = { user: user };
         next();
       } else {
         return res.status(401).send({ message: `Unauthorized` });
@@ -23,7 +26,6 @@ const verifyAuthToken = async (
       return res.status(401).send({ message: `Unauthorized` });
     }
   } catch (err) {
-    console.log(err);
     res.status(401).send({ message: `Unauthorized`, err });
   }
 };
