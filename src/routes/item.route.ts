@@ -10,6 +10,6 @@ itemRouter.post(`/`, itemController.create);
 itemRouter.get(`/`, itemController.get);
 
 // delete
-itemRouter.delete(`/:modelId`, itemController.deleteItem);
+itemRouter.delete(`/:itemId`, itemController.deleteItem);
 
 export default itemRouter;
