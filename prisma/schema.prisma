@@ -85,7 +85,7 @@ model Item {
   uom        String  
   model      Model    @relation(fields: [modelId], references: [id])
   modelId    String
-  skuCodes   SkuCode[]
+  skuCode    SkuCode?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
 }
@@ -95,12 +95,13 @@ model SkuCode {
   name        String   @unique
   isDefective Boolean
   item        Item     @relation(fields: [itemId], references: [id])
-  itemId      String
+  itemId      String   @unique
   stocks      Stock[]
   jobItems    JobItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
 }
+
 
 model Stock {
   id         String   @id @default(uuid())
