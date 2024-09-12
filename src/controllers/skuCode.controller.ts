@@ -16,6 +16,16 @@ const create = async (
       return res.status(409).send({ message: "SKU code already exists" });
     }
 
+    // get sku by item id
+    const getSkuByItem = await prisma.skuCode.findUnique({
+      where: { itemId: skuCode.itemId },
+    });
+    if (getSkuByItem) {
+      return res
+        .status(409)
+        .send({ message: "SKU code already exists at this item" });
+    }
+
     // insert
     const result = await prisma.skuCode.create({ data: skuCode });
     res.send(result);
@@ -37,11 +47,9 @@ const get = async (
           select: {
             name: true,
             uom: true,
-          },
-          include: {
+            modelId: true,
             model: {
-              select: { name: true },
-              include: { category: { select: { name: true } } },
+              select: { name: true, category: { select: { name: true } } },
             },
           },
         },
@@ -49,6 +57,7 @@ const get = async (
     });
     res.send(skuCodes);
   } catch (err) {
+    console.log(err);
     res.status(400).send(err);
   }
 };
