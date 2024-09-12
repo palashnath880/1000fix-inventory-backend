@@ -32,6 +32,9 @@ const get = async (
     const search = req.query.search;
     const models = await prisma.model.findMany({
       where: search ? { name: { contains: search } } : {},
+      include: {
+        category: true,
+      },
     });
     res.send(models);
   } catch (err) {
