@@ -21,6 +21,9 @@ stockRouter.post(`/transfer`, stockController.transfer);
 // transfer list
 stockRouter.get(`/transfer`, stockController.transferList);
 
+// receive stock list
+stockRouter.get(`/receive`, stockController.receiveStock);
+
 // transfer to engineer
 stockRouter.post(`/transfer-to-engineer`, stockController.transferToEngineer);
 

@@ -18,6 +18,8 @@ stockRouter.get(`/get-by-sku`, stock_controller_1.default.ownStockBySkuId);
 stockRouter.post(`/transfer`, stock_controller_1.default.transfer);
 // transfer list
 stockRouter.get(`/transfer`, stock_controller_1.default.transferList);
+// receive stock list
+stockRouter.get(`/receive`, stock_controller_1.default.receiveStock);
 // transfer to engineer
 stockRouter.post(`/transfer-to-engineer`, stock_controller_1.default.transferToEngineer);
 exports.default = stockRouter;

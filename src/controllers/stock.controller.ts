@@ -198,6 +198,27 @@ const transfer = async (
   }
 };
 
+// stock receive
+const receiveStock = async (req: Request, res: Response) => {
+  try {
+    const branchId = req?.cookies?.user?.branchId;
+    const result = await prisma.stock.findMany({
+      where: { receiverId: branchId, type: "transfer", status: "approved" },
+      include: {
+        sender: true,
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 //  engineer stock transfer
 const transferToEngineer = async (
   req: Request<{}, {}, { transferList: Stock[] }>,
@@ -234,21 +255,51 @@ const transferList = async (
   try {
     const fromDate = req.query.fromDate;
     const toDate = req.query.toDate;
-    const branchId = req.params.branchId;
+    const branchId = req.cookies?.user?.branchId;
 
     if (!fromDate || !toDate) {
       return res.send([]);
     }
 
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+
     const list = await prisma.stock.findMany({
       where: {
         type: "transfer",
         senderId: branchId,
-        createdAt: { gte: fromDate, lte: toDate },
+        createdAt: { gte: from, lte: to },
+      },
+      select: {
+        quantity: true,
+        createdAt: true,
+        receiverId: true,
+        receiver: {
+          select: {
+            name: true,
+          },
+        },
+        skuCode: {
+          select: {
+            name: true,
+            item: {
+              select: {
+                name: true,
+                uom: true,
+                model: {
+                  select: {
+                    name: true,
+                    category: { select: { name: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
-    return list;
+    res.send(list);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -262,4 +313,5 @@ export default {
   transferToEngineer,
   ownStock,
   ownStockBySkuId,
+  receiveStock,
 };

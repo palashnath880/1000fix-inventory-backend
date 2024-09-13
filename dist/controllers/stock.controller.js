@@ -168,6 +168,28 @@ const transfer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
+// stock receive
+const receiveStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const branchId = (_b = (_a = req === null || req === void 0 ? void 0 : req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const result = yield server_1.prisma.stock.findMany({
+            where: { receiverId: branchId, type: "transfer", status: "approved" },
+            include: {
+                sender: true,
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 //  engineer stock transfer
 const transferToEngineer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -189,21 +211,51 @@ const transferToEngineer = (req, res) => __awaiter(void 0, void 0, void 0, funct
 });
 // stock entry list
 const transferList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         const fromDate = req.query.fromDate;
         const toDate = req.query.toDate;
-        const branchId = req.params.branchId;
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
         if (!fromDate || !toDate) {
             return res.send([]);
         }
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
         const list = yield server_1.prisma.stock.findMany({
             where: {
                 type: "transfer",
                 senderId: branchId,
-                createdAt: { gte: fromDate, lte: toDate },
+                createdAt: { gte: from, lte: to },
+            },
+            select: {
+                quantity: true,
+                createdAt: true,
+                receiverId: true,
+                receiver: {
+                    select: {
+                        name: true,
+                    },
+                },
+                skuCode: {
+                    select: {
+                        name: true,
+                        item: {
+                            select: {
+                                name: true,
+                                uom: true,
+                                model: {
+                                    select: {
+                                        name: true,
+                                        category: { select: { name: true } },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
         });
-        return list;
+        res.send(list);
     }
     catch (err) {
         res.status(400).send(err);
@@ -217,4 +269,5 @@ exports.default = {
     transferToEngineer,
     ownStock,
     ownStockBySkuId,
+    receiveStock,
 };
