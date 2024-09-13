@@ -75,6 +75,7 @@ const entryList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
+// own stock
 const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e;
     try {
@@ -83,9 +84,44 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const model = (_d = req === null || req === void 0 ? void 0 : req.query) === null || _d === void 0 ? void 0 : _d.model;
         const skuCode = (_e = req === null || req === void 0 ? void 0 : req.query) === null || _e === void 0 ? void 0 : _e.skuCode;
         const stockArr = [];
-        const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, skuCode);
-        if (stock) {
+        if (skuCode) {
+            // get stocks by sku code
+            const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, skuCode);
             stockArr.push(stock);
+        }
+        else if (model) {
+            // get stocks by model
+            const getSkuCodes = yield server_1.prisma.skuCode.findMany({
+                where: { item: { modelId: model } },
+                select: {
+                    id: true,
+                },
+            });
+            for (const sku of getSkuCodes) {
+                const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, sku.id);
+                stockArr.push(stock);
+            }
+        }
+        else if (category) {
+            // get stocks by model
+            const getSkuCodes = yield server_1.prisma.skuCode.findMany({
+                where: { item: { model: { categoryId: category } } },
+                select: {
+                    id: true,
+                },
+            });
+            for (const sku of getSkuCodes) {
+                const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, sku.id);
+                stockArr.push(stock);
+            }
+        }
+        else {
+            // get stocks by model
+            const getSkuCodes = yield server_1.prisma.skuCode.findMany({});
+            for (const sku of getSkuCodes) {
+                const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, sku.id);
+                stockArr.push(stock);
+            }
         }
         res.send(stockArr);
     }
@@ -94,11 +130,24 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
+// own stock by sku id
+const ownStockBySkuId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const skuCodeId = req.query.skuCodeId;
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, skuCodeId);
+        res.send(stock);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 // stock transfer
 const transfer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
     try {
-        let list = req.body.transferList;
+        let list = req.body.list;
         const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
         const role = (_d = (_c = req.cookies) === null || _c === void 0 ? void 0 : _c.user) === null || _d === void 0 ? void 0 : _d.role;
         const newList = list.map((item) => {
@@ -167,4 +216,5 @@ exports.default = {
     transferList,
     transferToEngineer,
     ownStock,
+    ownStockBySkuId,
 };

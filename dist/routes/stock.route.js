@@ -12,6 +12,8 @@ stockRouter.post(`/entry`, stock_controller_1.default.entry);
 stockRouter.get(`/entry`, stock_controller_1.default.entryList);
 // own stock roue
 stockRouter.get(`/own`, stock_controller_1.default.ownStock);
+// own stock by sku id
+stockRouter.get(`/get-by-sku`, stock_controller_1.default.ownStockBySkuId);
 // transfer to branch
 stockRouter.post(`/transfer`, stock_controller_1.default.transfer);
 // transfer list

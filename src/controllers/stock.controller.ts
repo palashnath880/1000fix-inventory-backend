@@ -89,6 +89,7 @@ const entryList = async (
   }
 };
 
+// own stock
 const ownStock = async (
   req: Request<
     {},
@@ -110,9 +111,41 @@ const ownStock = async (
 
     const stockArr: any[] = [];
 
-    const stock = await branchStockBySkuId(branchId, skuCode);
-    if (stock) {
+    if (skuCode) {
+      // get stocks by sku code
+      const stock = await branchStockBySkuId(branchId, skuCode);
       stockArr.push(stock);
+    } else if (model) {
+      // get stocks by model
+      const getSkuCodes = await prisma.skuCode.findMany({
+        where: { item: { modelId: model } },
+        select: {
+          id: true,
+        },
+      });
+      for (const sku of getSkuCodes) {
+        const stock = await branchStockBySkuId(branchId, sku.id);
+        stockArr.push(stock);
+      }
+    } else if (category) {
+      // get stocks by model
+      const getSkuCodes = await prisma.skuCode.findMany({
+        where: { item: { model: { categoryId: category } } },
+        select: {
+          id: true,
+        },
+      });
+      for (const sku of getSkuCodes) {
+        const stock = await branchStockBySkuId(branchId, sku.id);
+        stockArr.push(stock);
+      }
+    } else {
+      // get stocks by model
+      const getSkuCodes = await prisma.skuCode.findMany({});
+      for (const sku of getSkuCodes) {
+        const stock = await branchStockBySkuId(branchId, sku.id);
+        stockArr.push(stock);
+      }
     }
 
     res.send(stockArr);
@@ -122,13 +155,28 @@ const ownStock = async (
   }
 };
 
-// stock transfer
-const transfer = async (
-  req: Request<{}, {}, { transferList: Stock[] }>,
+// own stock by sku id
+const ownStockBySkuId = async (
+  req: Request<{}, {}, {}, { skuCodeId: string }>,
   res: Response
 ) => {
   try {
-    let list = req.body.transferList;
+    const skuCodeId = req.query.skuCodeId;
+    const branchId = req.cookies?.user?.branchId;
+    const stock = await branchStockBySkuId(branchId, skuCodeId);
+    res.send(stock);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// stock transfer
+const transfer = async (
+  req: Request<{}, {}, { list: Stock[] }>,
+  res: Response
+) => {
+  try {
+    let list = req.body.list;
     const branchId = req.cookies?.user?.branchId;
     const role = req.cookies?.user?.role;
 
@@ -213,4 +261,5 @@ export default {
   transferList,
   transferToEngineer,
   ownStock,
+  ownStockBySkuId,
 };

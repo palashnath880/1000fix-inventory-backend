@@ -108,12 +108,11 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
                     returned_quantity +
                     transfer_quantity +
                     sellQuantity);
-            result = Object.assign(Object.assign({}, result), { quantity });
+            result = Object.assign(Object.assign({}, result), { quantity: parseFloat(quantity.toFixed(2)) });
         }
         return result;
     }
     catch (err) {
-        console.log(err);
         throw new Error("Stock error");
     }
 });

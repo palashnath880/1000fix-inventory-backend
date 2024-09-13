@@ -109,12 +109,11 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
           transfer_quantity +
           sellQuantity);
 
-      result = { ...result, quantity };
+      result = { ...result, quantity: parseFloat(quantity.toFixed(2)) };
     }
 
     return result;
   } catch (err) {
-    console.log(err);
     throw new Error("Stock error");
   }
 };
