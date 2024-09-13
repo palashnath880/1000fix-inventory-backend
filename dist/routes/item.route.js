@@ -11,5 +11,5 @@ itemRouter.post(`/`, item_controller_1.default.create);
 // get
 itemRouter.get(`/`, item_controller_1.default.get);
 // delete
-itemRouter.delete(`/:modelId`, item_controller_1.default.deleteItem);
+itemRouter.delete(`/:itemId`, item_controller_1.default.deleteItem);
 exports.default = itemRouter;

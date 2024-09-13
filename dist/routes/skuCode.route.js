@@ -11,5 +11,5 @@ skuCodeRouter.post(`/`, skuCode_controller_1.default.create);
 // get
 skuCodeRouter.get(`/`, skuCode_controller_1.default.get);
 // delete
-skuCodeRouter.delete(`/:modelId`, skuCode_controller_1.default.deleteSkuCode);
+skuCodeRouter.delete(`/:skuId`, skuCode_controller_1.default.deleteSkuCode);
 exports.default = skuCodeRouter;

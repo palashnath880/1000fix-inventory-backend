@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyAuthToken = void 0;
 const jsonwebtoken_1 = require("jsonwebtoken");
+const server_1 = require("../server");
 const verifyAuthToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const token = req.headers.authorization;
@@ -19,7 +20,9 @@ const verifyAuthToken = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             const authToken = token.split(" ")[1];
             const decoded = yield (0, jsonwebtoken_1.verify)(authToken, SECRET_KEY);
             if (decoded) {
-                req.cookies = { user: decoded };
+                const userId = decoded === null || decoded === void 0 ? void 0 : decoded.id;
+                const user = yield server_1.prisma.user.findUnique({ where: { id: userId } });
+                req.cookies = { user: user };
                 next();
             }
             else {
@@ -31,7 +34,6 @@ const verifyAuthToken = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         }
     }
     catch (err) {
-        console.log(err);
         res.status(401).send({ message: `Unauthorized`, err });
     }
 });

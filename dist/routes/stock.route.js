@@ -10,6 +10,8 @@ const stockRouter = (0, express_1.Router)();
 stockRouter.post(`/entry`, stock_controller_1.default.entry);
 // get entry list route
 stockRouter.get(`/entry`, stock_controller_1.default.entryList);
+// own stock roue
+stockRouter.get(`/own`, stock_controller_1.default.ownStock);
 // transfer to branch
 stockRouter.post(`/transfer`, stock_controller_1.default.transfer);
 // transfer list

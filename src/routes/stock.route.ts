@@ -9,6 +9,9 @@ stockRouter.post(`/entry`, stockController.entry);
 // get entry list route
 stockRouter.get(`/entry`, stockController.entryList);
 
+// own stock roue
+stockRouter.get(`/own`, stockController.ownStock);
+
 // transfer to branch
 stockRouter.post(`/transfer`, stockController.transfer);
 

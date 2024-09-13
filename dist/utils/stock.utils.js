@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.branchStockBySkuId = void 0;
 const server_1 = require("../server");
 // get average price by sku id
 const getAvgPrice = (skuId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -28,10 +29,10 @@ const getAvgPrice = (skuId) => __awaiter(void 0, void 0, void 0, function* () {
         });
         const total = prices.reduce((totalValue, newValue) => totalValue + newValue, 0);
         const avgPrice = total / prices.length;
-        return avgPrice.toFixed(2);
+        return parseFloat(avgPrice.toFixed(2));
     }
     catch (err) {
-        throw new Error(err === null || err === void 0 ? void 0 : err.message);
+        throw new Error("error form the getAvgPrice function");
     }
 });
 // get sell quantity
@@ -44,7 +45,7 @@ const getSellQuantity = (branchId, skuId) => __awaiter(void 0, void 0, void 0, f
         return rows._sum.quantity || 0;
     }
     catch (err) {
-        throw new Error(err === null || err === void 0 ? void 0 : err.message);
+        throw new Error("error from getSellQuantity function");
     }
 });
 // get branch stock by sku id
@@ -53,13 +54,20 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         // get sku code by id
         const skuCode = yield server_1.prisma.skuCode.findUnique({
             where: { id: skuId },
-            include: {
+            select: {
+                name: true,
+                isDefective: true,
                 item: {
-                    select: { name: true, uom: true },
-                    include: {
+                    select: {
+                        name: true,
+                        uom: true,
                         model: {
-                            select: { name: true },
-                            include: { category: { select: { name: true } } },
+                            select: {
+                                name: true,
+                                category: {
+                                    select: { name: true },
+                                },
+                            },
                         },
                     },
                 },
@@ -79,62 +87,34 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
             THEN quantity ELSE 0 END ) as returned_quantity,
         SUM(CASE WHEN type = 'engineer' AND senderId = ${branchId}
                 AND status IN ( 'open','received' ) 
-            THEN quantity ELSE 0 END ) as engineer_quantity,
+            THEN quantity ELSE 0 END ) as engineer_quantity
     FROM stock
     WHERE ( senderId = ${branchId} OR receiverId = ${branchId} ) 
         AND skuCodeId = ${skuId}
     `;
         const avgPrice = yield getAvgPrice(skuId);
         const sellQuantity = yield getSellQuantity(branchId, skuId);
-        return { skuCode, stock, avgPrice, sellQuantity };
-        // // entry count query
-        // const entry = await prisma.stock.aggregate({
-        //   _sum: { quantity: true },
-        //   where: { senderId: branchId, type: "entry", skuCodeId: skuId },
-        // });
-        // // received count query
-        // const received = await prisma.stock.aggregate({
-        //   _sum: { quantity: true },
-        //   where: {
-        //     receiverId: branchId,
-        //     type: "transfer",
-        //     status: "received",
-        //     skuCodeId: skuId,
-        //   },
-        // });
-        // // transfer count query
-        // const transfer = await prisma.stock.aggregate({
-        //   _sum: { quantity: true },
-        //   where: {
-        //     senderId: branchId,
-        //     type: "transfer",
-        //     skuCodeId: skuId,
-        //     status: { in: ["open", "approved", "received"] },
-        //   },
-        // });
-        // // returned count query
-        // const returned = await prisma.stock.aggregate({
-        //   _sum: { quantity: true },
-        //   where: {
-        //     senderId: branchId,
-        //     type: "return",
-        //     skuCodeId: skuId,
-        //     status: { in: ["open", "received"] },
-        //   },
-        // });
-        // // engineer send count query
-        // const engineer = await prisma.stock.aggregate({
-        //   _sum: { quantity: true },
-        //   where: {
-        //     senderId: branchId,
-        //     type: "engineer",
-        //     skuCodeId: skuId,
-        //     status: { in: ["open", "received"] },
-        //   },
-        // });
+        let result = { skuCode, avgPrice, quantity: 0 };
+        if (Array.isArray(stock) && (stock === null || stock === void 0 ? void 0 : stock.length) > 0) {
+            const stockObj = stock[0];
+            const entry_quantity = (stockObj === null || stockObj === void 0 ? void 0 : stockObj.entry_quantity) || 0;
+            const engineer_quantity = (stockObj === null || stockObj === void 0 ? void 0 : stockObj.engineer_quantity) || 0;
+            const received_quantity = (stockObj === null || stockObj === void 0 ? void 0 : stockObj.received_quantity) || 0;
+            const returned_quantity = (stockObj === null || stockObj === void 0 ? void 0 : stockObj.returned_quantity) || 0;
+            const transfer_quantity = (stockObj === null || stockObj === void 0 ? void 0 : stockObj.transfer_quantity) || 0;
+            const quantity = entry_quantity +
+                received_quantity -
+                (engineer_quantity +
+                    returned_quantity +
+                    transfer_quantity +
+                    sellQuantity);
+            result = Object.assign(Object.assign({}, result), { quantity });
+        }
+        return result;
     }
     catch (err) {
+        console.log(err);
         throw new Error("Stock error");
     }
 });
-exports.default = { branchStockBySkuId };
+exports.branchStockBySkuId = branchStockBySkuId;

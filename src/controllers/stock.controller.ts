@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
+import { branchStockBySkuId } from "../utils/stock.utils";
 
 type Stock = {
   type: "entry" | "transfer" | "return" | "defective" | "engineer";
@@ -15,17 +16,28 @@ type Stock = {
 };
 
 // stock entry
-const entry = async (req: Request<{}, {}, Stock>, res: Response) => {
+const entry = async (
+  req: Request<{}, {}, { list: Stock[] }>,
+  res: Response
+) => {
   try {
-    const newStock = req.body;
+    const body = req.body;
     const branchId = req.cookies?.user?.branchId;
-    newStock.senderId = branchId;
-    newStock.type = "entry";
+
+    const data: Stock[] = body.list?.map((i) => {
+      i.senderId = branchId;
+      i.type = "entry";
+      return i;
+    });
 
     // insert stock
-    const result = await prisma.stock.create({ data: newStock });
+    const result = await prisma.stock.createMany({
+      data: data,
+      skipDuplicates: true,
+    });
     res.send(result);
   } catch (err) {
+    console.log(err);
     res.status(400).send(err);
   }
 };
@@ -46,12 +58,66 @@ const entryList = async (
     const list = await prisma.stock.findMany({
       where: {
         type: "entry",
-        createdAt: { gte: fromDate, lte: toDate },
+        createdAt: { gte: new Date(fromDate), lte: new Date(toDate) },
+      },
+      select: {
+        price: true,
+        createdAt: true,
+        quantity: true,
+        id: true,
+        skuCode: {
+          select: {
+            name: true,
+            isDefective: true,
+            item: {
+              select: {
+                name: true,
+                uom: true,
+                model: {
+                  select: { name: true, category: { select: { name: true } } },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
-    return list;
+    return res.send(list);
   } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+const ownStock = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      category: string;
+      model: string;
+      skuCode: string;
+    }
+  >,
+  res: Response
+) => {
+  try {
+    const branchId = req?.cookies?.user?.branchId;
+    const category = req?.query?.category;
+    const model = req?.query?.model;
+    const skuCode = req?.query?.skuCode;
+
+    const stockArr: any[] = [];
+
+    const stock = await branchStockBySkuId(branchId, skuCode);
+    if (stock) {
+      stockArr.push(stock);
+    }
+
+    res.send(stockArr);
+  } catch (err) {
+    console.log(err);
     res.status(400).send(err);
   }
 };
@@ -140,4 +206,11 @@ const transferList = async (
   }
 };
 
-export default { entry, transfer, entryList, transferList, transferToEngineer };
+export default {
+  entry,
+  transfer,
+  entryList,
+  transferList,
+  transferToEngineer,
+  ownStock,
+};

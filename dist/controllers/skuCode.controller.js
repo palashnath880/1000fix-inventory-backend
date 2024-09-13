@@ -20,6 +20,15 @@ const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (getSku) {
             return res.status(409).send({ message: "SKU code already exists" });
         }
+        // get sku by item id
+        const getSkuByItem = yield server_1.prisma.skuCode.findUnique({
+            where: { itemId: skuCode.itemId },
+        });
+        if (getSkuByItem) {
+            return res
+                .status(409)
+                .send({ message: "SKU code already exists at this item" });
+        }
         // insert
         const result = yield server_1.prisma.skuCode.create({ data: skuCode });
         res.send(result);
@@ -38,11 +47,9 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     select: {
                         name: true,
                         uom: true,
-                    },
-                    include: {
+                        modelId: true,
                         model: {
-                            select: { name: true },
-                            include: { category: { select: { name: true } } },
+                            select: { name: true, category: { select: { name: true } } },
                         },
                     },
                 },
@@ -51,6 +58,7 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.send(skuCodes);
     }
     catch (err) {
+        console.log(err);
         res.status(400).send(err);
     }
 });

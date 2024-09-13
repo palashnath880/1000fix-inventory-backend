@@ -10,19 +10,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = require("../server");
+const stock_utils_1 = require("../utils/stock.utils");
 // stock entry
 const entry = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c;
     try {
-        const newStock = req.body;
+        const body = req.body;
         const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
-        newStock.senderId = branchId;
-        newStock.type = "entry";
+        const data = (_c = body.list) === null || _c === void 0 ? void 0 : _c.map((i) => {
+            i.senderId = branchId;
+            i.type = "entry";
+            return i;
+        });
         // insert stock
-        const result = yield server_1.prisma.stock.create({ data: newStock });
+        const result = yield server_1.prisma.stock.createMany({
+            data: data,
+            skipDuplicates: true,
+        });
         res.send(result);
     }
     catch (err) {
+        console.log(err);
         res.status(400).send(err);
     }
 });
@@ -37,12 +45,52 @@ const entryList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const list = yield server_1.prisma.stock.findMany({
             where: {
                 type: "entry",
-                createdAt: { gte: fromDate, lte: toDate },
+                createdAt: { gte: new Date(fromDate), lte: new Date(toDate) },
+            },
+            select: {
+                price: true,
+                createdAt: true,
+                quantity: true,
+                id: true,
+                skuCode: {
+                    select: {
+                        name: true,
+                        isDefective: true,
+                        item: {
+                            select: {
+                                name: true,
+                                uom: true,
+                                model: {
+                                    select: { name: true, category: { select: { name: true } } },
+                                },
+                            },
+                        },
+                    },
+                },
             },
         });
-        return list;
+        return res.send(list);
     }
     catch (err) {
+        res.status(400).send(err);
+    }
+});
+const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e;
+    try {
+        const branchId = (_b = (_a = req === null || req === void 0 ? void 0 : req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const category = (_c = req === null || req === void 0 ? void 0 : req.query) === null || _c === void 0 ? void 0 : _c.category;
+        const model = (_d = req === null || req === void 0 ? void 0 : req.query) === null || _d === void 0 ? void 0 : _d.model;
+        const skuCode = (_e = req === null || req === void 0 ? void 0 : req.query) === null || _e === void 0 ? void 0 : _e.skuCode;
+        const stockArr = [];
+        const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, skuCode);
+        if (stock) {
+            stockArr.push(stock);
+        }
+        res.send(stockArr);
+    }
+    catch (err) {
+        console.log(err);
         res.status(400).send(err);
     }
 });
@@ -112,4 +160,11 @@ const transferList = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(400).send(err);
     }
 });
-exports.default = { entry, transfer, entryList, transferList, transferToEngineer };
+exports.default = {
+    entry,
+    transfer,
+    entryList,
+    transferList,
+    transferToEngineer,
+    ownStock,
+};
