@@ -382,6 +382,27 @@ const transferList = async (
   }
 };
 
+// approval stock
+const approvalStock = async (req: Request, res: Response) => {
+  try {
+    const result = await prisma.stock.findMany({
+      where: { type: "transfer", status: "open" },
+      include: {
+        receiver: true,
+        sender: true,
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   entry,
   transfer,
@@ -393,4 +414,5 @@ export default {
   receiveStock,
   statusUpdate,
   receiveReport,
+  approvalStock,
 };

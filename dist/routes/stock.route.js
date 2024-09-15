@@ -26,4 +26,6 @@ stockRouter.get(`/receive/report`, stock_controller_1.default.receiveReport);
 stockRouter.put(`/status/:stockId`, stock_controller_1.default.statusUpdate);
 // transfer to engineer
 stockRouter.post(`/transfer-to-engineer`, stock_controller_1.default.transferToEngineer);
+// get approval stock
+stockRouter.get(`/approval`, stock_controller_1.default.approvalStock);
 exports.default = stockRouter;

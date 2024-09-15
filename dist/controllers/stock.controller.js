@@ -333,6 +333,27 @@ const transferList = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(400).send(err);
     }
 });
+// approval stock
+const approvalStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield server_1.prisma.stock.findMany({
+            where: { type: "transfer", status: "open" },
+            include: {
+                receiver: true,
+                sender: true,
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 exports.default = {
     entry,
     transfer,
@@ -344,4 +365,5 @@ exports.default = {
     receiveStock,
     statusUpdate,
     receiveReport,
+    approvalStock,
 };

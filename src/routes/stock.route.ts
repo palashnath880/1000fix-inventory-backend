@@ -33,4 +33,7 @@ stockRouter.put(`/status/:stockId`, stockController.statusUpdate);
 // transfer to engineer
 stockRouter.post(`/transfer-to-engineer`, stockController.transferToEngineer);
 
+// get approval stock
+stockRouter.get(`/approval`, stockController.approvalStock);
+
 export default stockRouter;
