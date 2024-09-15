@@ -20,6 +20,10 @@ stockRouter.post(`/transfer`, stock_controller_1.default.transfer);
 stockRouter.get(`/transfer`, stock_controller_1.default.transferList);
 // receive stock list
 stockRouter.get(`/receive`, stock_controller_1.default.receiveStock);
+// receive stock list
+stockRouter.get(`/receive/report`, stock_controller_1.default.receiveReport);
+// status update
+stockRouter.put(`/status/:stockId`, stock_controller_1.default.statusUpdate);
 // transfer to engineer
 stockRouter.post(`/transfer-to-engineer`, stock_controller_1.default.transferToEngineer);
 exports.default = stockRouter;

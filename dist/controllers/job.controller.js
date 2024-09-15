@@ -36,21 +36,25 @@ const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const jobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
-        const branchId = req.params.branchId;
-        const fromDate = req.query.fromDate;
-        const toDate = req.query.toDate;
+        const id = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const fromDate = req.query.fromDate ? new Date(req.query.fromDate) : "";
+        const toDate = req.query.toDate ? new Date(req.query.toDate) : "";
+        if (!fromDate || !toDate) {
+            return res.send([]);
+        }
         // get list
         const result = yield server_1.prisma.job.findMany({
             where: {
-                branchId: branchId,
+                branchId: id,
                 createdAt: {
                     gte: fromDate,
                     lte: toDate,
                 },
             },
             include: {
-                items: true,
+                items: { include: { skuCode: true } },
                 engineer: {
                     select: {
                         name: true,

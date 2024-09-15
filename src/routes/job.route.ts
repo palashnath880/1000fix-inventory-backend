@@ -6,7 +6,7 @@ const jobRouter = Router();
 // post route
 jobRouter.post(`/`, jobController.create);
 
-// post route
-jobRouter.post(`/job-list/:branchId`, jobController.jobList);
+// job list route
+jobRouter.get(`/list`, jobController.jobList);
 
 export default jobRouter;

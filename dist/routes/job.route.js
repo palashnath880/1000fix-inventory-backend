@@ -8,6 +8,6 @@ const job_controller_1 = __importDefault(require("../controllers/job.controller"
 const jobRouter = (0, express_1.Router)();
 // post route
 jobRouter.post(`/`, job_controller_1.default.create);
-// post route
-jobRouter.post(`/job-list/:branchId`, job_controller_1.default.jobList);
+// job list route
+jobRouter.get(`/list`, job_controller_1.default.jobList);
 exports.default = jobRouter;

@@ -102,7 +102,6 @@ model SkuCode {
   updatedAt   DateTime @default(now())
 }
 
-
 model Stock {
   id         String   @id @default(uuid())
   type       StockType   @default(entry)
@@ -118,7 +117,7 @@ model Stock {
   receiverId String? 
   skuCode    SkuCode @relation(fields: [skuCodeId],references: [id])
   skuCodeId  String  
-  endAt      DateTime @default(now())
+  endAt      DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) 
 }

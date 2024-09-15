@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
 import { branchStockBySkuId } from "../utils/stock.utils";
+import moment from "moment-timezone";
 
 type Stock = {
   type: "entry" | "transfer" | "return" | "defective" | "engineer";
@@ -219,6 +220,87 @@ const receiveStock = async (req: Request, res: Response) => {
   }
 };
 
+//  stock status update
+const statusUpdate = async (
+  req: Request<
+    { stockId: string },
+    {},
+    { status: "approved" | "rejected" | "received"; note: string | null }
+  >,
+  res: Response
+) => {
+  try {
+    const stockId = req.params.stockId;
+    const data: any = { ...req.body };
+    if (data?.status !== "approved") {
+      data.endAt = moment.tz("Asia/Dhaka").toISOString();
+    }
+    const result = await prisma.stock.update({ where: { id: stockId }, data });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// stock receive report
+const receiveReport = async (
+  req: Request<{}, {}, {}, { fromDate: string; toDate: string }>,
+  res: Response
+) => {
+  try {
+    const fromDate = req.query.fromDate;
+    const toDate = req.query.toDate;
+    const branchId = req.cookies?.user?.branchId;
+
+    if (!fromDate || !toDate) {
+      return res.send([]);
+    }
+
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+
+    const list = await prisma.stock.findMany({
+      where: {
+        type: "transfer",
+        receiverId: branchId,
+        createdAt: { gte: from, lte: to },
+        status: { in: ["received", "rejected"] },
+      },
+      select: {
+        quantity: true,
+        createdAt: true,
+        receiverId: true,
+        receiver: {
+          select: {
+            name: true,
+          },
+        },
+        skuCode: {
+          select: {
+            name: true,
+            item: {
+              select: {
+                name: true,
+                uom: true,
+                model: {
+                  select: {
+                    name: true,
+                    category: { select: { name: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.send(list);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 //  engineer stock transfer
 const transferToEngineer = async (
   req: Request<{}, {}, { transferList: Stock[] }>,
@@ -244,12 +326,7 @@ const transferToEngineer = async (
 
 // stock entry list
 const transferList = async (
-  req: Request<
-    { branchId: string },
-    {},
-    {},
-    { fromDate: string; toDate: string }
-  >,
+  req: Request<{}, {}, {}, { fromDate: string; toDate: string }>,
   res: Response
 ) => {
   try {
@@ -314,4 +391,6 @@ export default {
   ownStock,
   ownStockBySkuId,
   receiveStock,
+  statusUpdate,
+  receiveReport,
 };

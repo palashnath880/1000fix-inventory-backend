@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `stock` ALTER COLUMN `endAt` DROP DEFAULT;

@@ -45,30 +45,30 @@ const create = async (req: Request<{}, {}, JobType>, res: Response) => {
 };
 
 const jobList = async (
-  req: Request<
-    { branchId: string },
-    {},
-    {},
-    { fromDate: string; toDate: string }
-  >,
+  req: Request<{ id: string }, {}, {}, { fromDate: string; toDate: string }>,
   res: Response
 ) => {
   try {
-    const branchId = req.params.branchId;
-    const fromDate = req.query.fromDate;
-    const toDate = req.query.toDate;
+    const id = req.cookies?.user?.branchId;
+
+    const fromDate = req.query.fromDate ? new Date(req.query.fromDate) : "";
+    const toDate = req.query.toDate ? new Date(req.query.toDate) : "";
+
+    if (!fromDate || !toDate) {
+      return res.send([]);
+    }
 
     // get list
     const result = await prisma.job.findMany({
       where: {
-        branchId: branchId,
+        branchId: id,
         createdAt: {
           gte: fromDate,
           lte: toDate,
         },
       },
       include: {
-        items: true,
+        items: { include: { skuCode: true } },
         engineer: {
           select: {
             name: true,

@@ -8,9 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = require("../server");
 const stock_utils_1 = require("../utils/stock.utils");
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 // stock entry
 const entry = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
@@ -190,6 +194,74 @@ const receiveStock = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(400).send(err);
     }
 });
+//  stock status update
+const statusUpdate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const stockId = req.params.stockId;
+        const data = Object.assign({}, req.body);
+        if ((data === null || data === void 0 ? void 0 : data.status) !== "approved") {
+            data.endAt = moment_timezone_1.default.tz("Asia/Dhaka").toISOString();
+        }
+        const result = yield server_1.prisma.stock.update({ where: { id: stockId }, data });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// stock receive report
+const receiveReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const fromDate = req.query.fromDate;
+        const toDate = req.query.toDate;
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        if (!fromDate || !toDate) {
+            return res.send([]);
+        }
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+        const list = yield server_1.prisma.stock.findMany({
+            where: {
+                type: "transfer",
+                receiverId: branchId,
+                createdAt: { gte: from, lte: to },
+                status: { in: ["received", "rejected"] },
+            },
+            select: {
+                quantity: true,
+                createdAt: true,
+                receiverId: true,
+                receiver: {
+                    select: {
+                        name: true,
+                    },
+                },
+                skuCode: {
+                    select: {
+                        name: true,
+                        item: {
+                            select: {
+                                name: true,
+                                uom: true,
+                                model: {
+                                    select: {
+                                        name: true,
+                                        category: { select: { name: true } },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        res.send(list);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 //  engineer stock transfer
 const transferToEngineer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -270,4 +342,6 @@ exports.default = {
     ownStock,
     ownStockBySkuId,
     receiveStock,
+    statusUpdate,
+    receiveReport,
 };
