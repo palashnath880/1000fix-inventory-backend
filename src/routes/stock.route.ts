@@ -15,8 +15,17 @@ stockRouter.get(`/own`, stockController.ownStock);
 // own stock by sku id
 stockRouter.get(`/get-by-sku`, stockController.ownStockBySkuId);
 
+// engineer stock by sku id
+stockRouter.get(
+  `/get-by-sku/:engineerId/:skuId`,
+  stockController.engineerStockBySku
+);
+
 // transfer to branch
 stockRouter.post(`/transfer`, stockController.transfer);
+
+// return stock
+stockRouter.post(`/return`, stockController.returnStock);
 
 // transfer list
 stockRouter.get(`/transfer`, stockController.transferList);
@@ -29,9 +38,6 @@ stockRouter.get(`/receive/report`, stockController.receiveReport);
 
 // status update
 stockRouter.put(`/status/:stockId`, stockController.statusUpdate);
-
-// transfer to engineer
-stockRouter.post(`/transfer-to-engineer`, stockController.transferToEngineer);
 
 // get approval stock
 stockRouter.get(`/approval`, stockController.approvalStock);

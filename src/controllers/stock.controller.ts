@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
-import { branchStockBySkuId } from "../utils/stock.utils";
+import { branchStockBySkuId, engineerStockBySkuId } from "../utils/stock.utils";
 import moment from "moment-timezone";
 
 type Stock = {
-  type: "entry" | "transfer" | "return" | "defective" | "engineer";
+  type: "entry" | "transfer" | "defective" | "faulty";
   status: "open" | "approved" | "rejected" | "received" | "returned";
   price: number;
   quantity: number;
@@ -171,6 +171,22 @@ const ownStockBySkuId = async (
   }
 };
 
+// engineer stock
+const engineerStockBySku = async (
+  req: Request<{ engineerId: string; skuId: string }>,
+  res: Response
+) => {
+  try {
+    const engineerId = req.params.engineerId;
+    const skuId = req.params.skuId;
+
+    const stock = await engineerStockBySkuId(engineerId, skuId);
+    res.send(stock);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 // stock transfer
 const transfer = async (
   req: Request<{}, {}, { list: Stock[] }>,
@@ -189,6 +205,29 @@ const transfer = async (
       } else {
         item.status = "open";
       }
+      return item;
+    });
+
+    const result = await prisma.stock.createMany({ data: newList });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// return
+const returnStock = async (
+  req: Request<{}, {}, { list: Stock[] }>,
+  res: Response
+) => {
+  try {
+    let list = req.body.list;
+    const branchId = req.cookies?.user?.branchId;
+
+    const newList: Stock[] = list.map((item) => {
+      item.senderId = branchId;
+      item.type = "faulty";
+      item.status = "open";
       return item;
     });
 
@@ -301,29 +340,6 @@ const receiveReport = async (
   }
 };
 
-//  engineer stock transfer
-const transferToEngineer = async (
-  req: Request<{}, {}, { transferList: Stock[] }>,
-  res: Response
-) => {
-  try {
-    let list = req.body.transferList;
-    const branchId = req.cookies?.user?.branchId;
-
-    const newList: Stock[] = list.map((item) => {
-      item.senderId = branchId;
-      item.type = "engineer";
-      item.status = "open";
-      return item;
-    });
-
-    const result = await prisma.stock.createMany({ data: newList });
-    res.send(result);
-  } catch (err) {
-    res.status(400).send(err);
-  }
-};
-
 // stock entry list
 const transferList = async (
   req: Request<{}, {}, {}, { fromDate: string; toDate: string }>,
@@ -408,11 +424,12 @@ export default {
   transfer,
   entryList,
   transferList,
-  transferToEngineer,
   ownStock,
   ownStockBySkuId,
   receiveStock,
   statusUpdate,
   receiveReport,
   approvalStock,
+  returnStock,
+  engineerStockBySku,
 };

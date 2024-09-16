@@ -8,6 +8,7 @@ import itemRouter from "./item.route";
 import skuRouter from "./skuCode.route";
 import stockRouter from "./stock.route";
 import jobRouter from "./job.route";
+import enStockRouter from "./engineerStock.route";
 import { verifyAuthToken } from "../middlewares/verifyToken";
 
 const routes = Router();
@@ -35,6 +36,9 @@ routes.use("/sku-code", verifyAuthToken, skuRouter);
 
 // stock route
 routes.use("/stock", verifyAuthToken, stockRouter);
+
+// engineer stock route
+routes.use("/engineer-stock", verifyAuthToken, enStockRouter);
 
 // stock route
 routes.use("/job", verifyAuthToken, jobRouter);

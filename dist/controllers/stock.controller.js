@@ -147,6 +147,18 @@ const ownStockBySkuId = (req, res) => __awaiter(void 0, void 0, void 0, function
         res.status(400).send(err);
     }
 });
+// engineer stock
+const engineerStockBySku = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const engineerId = req.params.engineerId;
+        const skuId = req.params.skuId;
+        const stock = yield (0, stock_utils_1.engineerStockBySkuId)(engineerId, skuId);
+        res.send(stock);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 // stock transfer
 const transfer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
@@ -163,6 +175,25 @@ const transfer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             else {
                 item.status = "open";
             }
+            return item;
+        });
+        const result = yield server_1.prisma.stock.createMany({ data: newList });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// return
+const returnStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        let list = req.body.list;
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const newList = list.map((item) => {
+            item.senderId = branchId;
+            item.type = "faulty";
+            item.status = "open";
             return item;
         });
         const result = yield server_1.prisma.stock.createMany({ data: newList });
@@ -262,25 +293,6 @@ const receiveReport = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(400).send(err);
     }
 });
-//  engineer stock transfer
-const transferToEngineer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
-    try {
-        let list = req.body.transferList;
-        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
-        const newList = list.map((item) => {
-            item.senderId = branchId;
-            item.type = "engineer";
-            item.status = "open";
-            return item;
-        });
-        const result = yield server_1.prisma.stock.createMany({ data: newList });
-        res.send(result);
-    }
-    catch (err) {
-        res.status(400).send(err);
-    }
-});
 // stock entry list
 const transferList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -359,11 +371,12 @@ exports.default = {
     transfer,
     entryList,
     transferList,
-    transferToEngineer,
     ownStock,
     ownStockBySkuId,
     receiveStock,
     statusUpdate,
     receiveReport,
     approvalStock,
+    returnStock,
+    engineerStockBySku,
 };

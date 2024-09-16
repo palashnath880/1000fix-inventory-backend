@@ -17,9 +17,14 @@ enum Role {
 enum StockType {
   entry
   transfer
-  engineer
-  return
+  faulty
   defective
+}
+
+enum EnStockType {
+  transfer
+  return
+  faulty
 }
 
 enum StockStatus {
@@ -45,6 +50,7 @@ model Branch {
   sender     Stock[] @relation("sender")
   users      User[] 
   job        Job[]
+  enStocks   EngineerStock[]
 }
 
 model User{
@@ -57,6 +63,7 @@ model User{
   branch    Branch? @relation(fields: [branchId],references: [id])
   branchId  String?
   jobs      Job[]
+  stocks    EngineerStock[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
@@ -97,6 +104,7 @@ model SkuCode {
   item        Item     @relation(fields: [itemId], references: [id])
   itemId      String   @unique
   stocks      Stock[]
+  enStock     EngineerStock[]
   jobItems    JobItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
@@ -117,6 +125,24 @@ model Stock {
   receiverId String? 
   skuCode    SkuCode @relation(fields: [skuCodeId],references: [id])
   skuCodeId  String  
+  endAt      DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) 
+}
+
+model EngineerStock {
+  id         String   @id @default(uuid())
+  status     StockStatus  @default(open)
+  type       EnStockType  @default(transfer)
+  price      Float?       @default(0)
+  quantity   Float?       @default(0)
+  note       String?
+  branch     Branch       @relation(fields: [branchId],references: [id])
+  branchId   String
+  engineer   User         @relation(fields: [engineerId],references: [id])
+  engineerId String
+  skuCode    SkuCode      @relation(fields: [skuCodeId],references: [id])
+  skuCodeId  String
   endAt      DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) 

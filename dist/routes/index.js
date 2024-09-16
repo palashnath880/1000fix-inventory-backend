@@ -31,6 +31,8 @@ routes.use("/item", verifyToken_1.verifyAuthToken, item_route_1.default);
 routes.use("/sku-code", verifyToken_1.verifyAuthToken, skuCode_route_1.default);
 // stock route
 routes.use("/stock", verifyToken_1.verifyAuthToken, stock_route_1.default);
+// engineer stock route
+routes.use("/engineer-stock", verifyToken_1.verifyAuthToken, stock_route_1.default);
 // stock route
 routes.use("/job", verifyToken_1.verifyAuthToken, job_route_1.default);
 exports.default = routes;
