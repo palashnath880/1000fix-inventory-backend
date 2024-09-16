@@ -74,6 +74,48 @@ const getSellQuantity = async (branchId: string, skuId: string) => {
   }
 };
 
+// get branch defective
+const getDefective = async (branchId: string, skuId: string) => {
+  try {
+    let quantity: number = 0;
+
+    // get generate defective quantity
+    const defective = await prisma.jobItem.aggregate({
+      _sum: { quantity: true },
+      where: {
+        skuCode: {
+          id: skuId,
+          isDefective: true,
+        },
+        job: {
+          branchId: branchId,
+        },
+      },
+    });
+
+    // send defective quantity
+    const sendDefective = await prisma.stock.aggregate({
+      _sum: { quantity: true },
+      where: {
+        type: "defective",
+        senderId: branchId,
+        skuCodeId: skuId,
+        status: { in: ["open", "received"] },
+      },
+    });
+
+    // defective quantity
+    if (defective?._sum?.quantity) quantity += defective._sum.quantity;
+
+    // send defective
+    if (sendDefective?._sum?.quantity) quantity -= sendDefective._sum.quantity;
+
+    return quantity;
+  } catch (err: any) {
+    throw new Error(err);
+  }
+};
+
 // get branch stock by sku id
 const branchStockBySkuId = async (branchId: string, skuId: string) => {
   try {
@@ -102,23 +144,36 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
       },
     });
 
-    const faulty = await prisma.stock.aggregate({
+    const faultyReturn = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: {
+        type: "faulty",
         senderId: branchId,
         skuCodeId: skuId,
         status: { in: ["open", "received"] },
       },
     });
 
+    const engineer = await prisma.engineerStock.aggregate({
+      _sum: { quantity: true },
+      where: { skuCodeId: skuId, type: "transfer", branchId: branchId },
+    });
+
     const skuCode = await getSku(skuId);
     const avgPrice = await getAvgPrice(skuId);
     const sellQuantity = await getSellQuantity(branchId, skuId);
+    const defective = await getDefective(branchId, skuId);
 
-    const result: { skuCode: any; avgPrice: number; quantity: number } = {
+    const result: {
+      skuCode: any;
+      avgPrice: number;
+      quantity: number;
+      defective: number;
+    } = {
       skuCode,
       avgPrice,
       quantity: 0,
+      defective,
     };
 
     // entry quantity
@@ -128,11 +183,16 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
     if (received?._sum?.quantity) result.quantity += received._sum.quantity;
 
     // transfer quantity
-    if (transfer?._sum?.quantity) result.quantity += transfer._sum.quantity;
+    if (transfer?._sum?.quantity) result.quantity -= transfer._sum.quantity;
 
     // faulty quantity
-    if (faulty?._sum?.quantity) result.quantity += faulty._sum.quantity;
+    if (faultyReturn?._sum?.quantity)
+      result.quantity -= faultyReturn._sum.quantity;
 
+    // engineer transfer quantity
+    if (engineer?._sum?.quantity) result.quantity -= engineer._sum.quantity;
+
+    // minus sell quantity
     if (sellQuantity) result.quantity -= sellQuantity;
 
     result.quantity = parseFloat(result.quantity.toFixed(2));
