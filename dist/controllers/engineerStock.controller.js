@@ -17,9 +17,12 @@ const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const stock_utils_1 = require("../utils/stock.utils");
 // transfer to engineer
 const transfer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         const stock = req.body.list;
-        const result = yield server_1.prisma.engineerStock.createMany({ data: stock });
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const list = stock.map((i) => (Object.assign(Object.assign({}, i), { branchId })));
+        const result = yield server_1.prisma.engineerStock.createMany({ data: list });
         res.status(201).send(result);
     }
     catch (err) {

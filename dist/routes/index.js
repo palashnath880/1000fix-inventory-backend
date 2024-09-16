@@ -13,6 +13,7 @@ const item_route_1 = __importDefault(require("./item.route"));
 const skuCode_route_1 = __importDefault(require("./skuCode.route"));
 const stock_route_1 = __importDefault(require("./stock.route"));
 const job_route_1 = __importDefault(require("./job.route"));
+const engineerStock_route_1 = __importDefault(require("./engineerStock.route"));
 const verifyToken_1 = require("../middlewares/verifyToken");
 const routes = (0, express_1.Router)();
 // auth route
@@ -32,7 +33,7 @@ routes.use("/sku-code", verifyToken_1.verifyAuthToken, skuCode_route_1.default);
 // stock route
 routes.use("/stock", verifyToken_1.verifyAuthToken, stock_route_1.default);
 // engineer stock route
-routes.use("/engineer-stock", verifyToken_1.verifyAuthToken, stock_route_1.default);
+routes.use("/engineer-stock", verifyToken_1.verifyAuthToken, engineerStock_route_1.default);
 // stock route
 routes.use("/job", verifyToken_1.verifyAuthToken, job_route_1.default);
 exports.default = routes;

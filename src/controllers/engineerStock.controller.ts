@@ -7,7 +7,10 @@ import { engineerStockBySkuId } from "../utils/stock.utils";
 const transfer = async (req: Request, res: Response) => {
   try {
     const stock = req.body.list;
-    const result = await prisma.engineerStock.createMany({ data: stock });
+    const branchId = req.cookies?.user?.branchId;
+    const list: any[] = stock.map((i: any) => ({ ...i, branchId }));
+
+    const result = await prisma.engineerStock.createMany({ data: list });
     res.status(201).send(result);
   } catch (err) {
     res.status(400).send(err);
