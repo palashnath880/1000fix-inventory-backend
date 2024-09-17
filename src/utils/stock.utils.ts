@@ -208,7 +208,12 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
   try {
     const received = await prisma.engineerStock.aggregate({
       _sum: { quantity: true },
-      where: { engineerId: userId, type: "transfer", status: "received" },
+      where: {
+        engineerId: userId,
+        type: "transfer",
+        status: "received",
+        skuCodeId: skuId,
+      },
     });
 
     const sell = await prisma.jobItem.aggregate({
@@ -222,9 +227,9 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
     const avgPrice = await getAvgPrice(skuId);
     const skuCode = await getSku(skuId);
     let quantity = 0;
-    if (received?._sum?.quantity && sell?._sum?.quantity) {
-      quantity = received._sum.quantity - sell._sum.quantity;
-    }
+
+    if (received?._sum?.quantity) quantity += received?._sum?.quantity;
+    if (sell?._sum?.quantity) quantity -= sell?._sum?.quantity;
 
     return { quantity, skuCode, avgPrice };
   } catch (err: any) {

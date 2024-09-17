@@ -12,7 +12,13 @@ engineerStockRouter.get(`/get-by-sku/:userId/:skuId`, controller.stockBySkuId);
 // transfer to engineer
 engineerStockRouter.post(`/transfer`, controller.transfer);
 
+// faulty stock return
+engineerStockRouter.post(`/faulty-return`, controller.faultyReturn);
+
+// receive stock
+engineerStockRouter.get(`/receive`, controller.receive);
+
 // status update
-engineerStockRouter.put(`/status/:stockId`, controller.statusUpdate);
+engineerStockRouter.put(`/:stockId`, controller.update);
 
 export default engineerStockRouter;

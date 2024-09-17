@@ -196,11 +196,16 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
 exports.branchStockBySkuId = branchStockBySkuId;
 // get engineer stock by sku id
 const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d;
     try {
         const received = yield server_1.prisma.engineerStock.aggregate({
             _sum: { quantity: true },
-            where: { engineerId: userId, type: "transfer", status: "received" },
+            where: {
+                engineerId: userId,
+                type: "transfer",
+                status: "received",
+                skuCodeId: skuId,
+            },
         });
         const sell = yield server_1.prisma.jobItem.aggregate({
             _sum: { quantity: true },
@@ -212,9 +217,10 @@ const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0
         const avgPrice = yield getAvgPrice(skuId);
         const skuCode = yield getSku(skuId);
         let quantity = 0;
-        if (((_a = received === null || received === void 0 ? void 0 : received._sum) === null || _a === void 0 ? void 0 : _a.quantity) && ((_b = sell === null || sell === void 0 ? void 0 : sell._sum) === null || _b === void 0 ? void 0 : _b.quantity)) {
-            quantity = received._sum.quantity - sell._sum.quantity;
-        }
+        if ((_a = received === null || received === void 0 ? void 0 : received._sum) === null || _a === void 0 ? void 0 : _a.quantity)
+            quantity += (_b = received === null || received === void 0 ? void 0 : received._sum) === null || _b === void 0 ? void 0 : _b.quantity;
+        if ((_c = sell === null || sell === void 0 ? void 0 : sell._sum) === null || _c === void 0 ? void 0 : _c.quantity)
+            quantity -= (_d = sell === null || sell === void 0 ? void 0 : sell._sum) === null || _d === void 0 ? void 0 : _d.quantity;
         return { quantity, skuCode, avgPrice };
     }
     catch (err) {

@@ -29,10 +29,34 @@ const transfer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
-// status handler
-const statusUpdate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// receive stock list
+const receive = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
-        const id = req.params.id;
+        const userId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
+        const result = yield server_1.prisma.engineerStock.findMany({
+            where: { engineerId: userId, status: "open", type: "transfer" },
+            orderBy: {
+                createdAt: "asc",
+            },
+            include: {
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// status handler
+const update = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = req.params.stockId;
         const data = req.body;
         data.endAt = moment_timezone_1.default.tz("Asia/Dhaka").toISOString();
         const result = yield server_1.prisma.engineerStock.update({
@@ -42,6 +66,7 @@ const statusUpdate = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.send(result);
     }
     catch (err) {
+        console.log(err);
         res.status(400).send(err);
     }
 });
@@ -52,7 +77,7 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const userId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
         const category = (_c = req === null || req === void 0 ? void 0 : req.query) === null || _c === void 0 ? void 0 : _c.category;
         const model = (_d = req === null || req === void 0 ? void 0 : req.query) === null || _d === void 0 ? void 0 : _d.model;
-        const skuCode = (_e = req === null || req === void 0 ? void 0 : req.query) === null || _e === void 0 ? void 0 : _e.skuCode;
+        const skuCode = (_e = req === null || req === void 0 ? void 0 : req.query) === null || _e === void 0 ? void 0 : _e.skuId;
         const stockArr = [];
         if (skuCode) {
             // get stocks by sku code
@@ -93,6 +118,22 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 stockArr.push(stock);
             }
         }
+        res.send(stockArr);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// faulty stock return
+const faultyReturn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    try {
+        const data = req.body.list;
+        const engineerId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
+        const branchId = (_d = (_c = req.cookies) === null || _c === void 0 ? void 0 : _c.user) === null || _d === void 0 ? void 0 : _d.branchId;
+        const list = data.map((i) => (Object.assign(Object.assign({}, i), { engineerId: engineerId, type: "faulty", branchId: branchId })));
+        const result = yield server_1.prisma.engineerStock.createMany({ data: list });
+        res.send(result);
     }
     catch (err) {
         res.status(400).send(err);
@@ -110,4 +151,11 @@ const stockBySkuId = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(400).send(err);
     }
 });
-exports.default = { transfer, statusUpdate, ownStock, stockBySkuId };
+exports.default = {
+    transfer,
+    receive,
+    update,
+    ownStock,
+    stockBySkuId,
+    faultyReturn,
+};

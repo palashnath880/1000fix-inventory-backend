@@ -12,6 +12,10 @@ engineerStockRouter.get(`/own`, engineerStock_controller_1.default.ownStock);
 engineerStockRouter.get(`/get-by-sku/:userId/:skuId`, engineerStock_controller_1.default.stockBySkuId);
 // transfer to engineer
 engineerStockRouter.post(`/transfer`, engineerStock_controller_1.default.transfer);
+// faulty stock return
+engineerStockRouter.post(`/faulty-return`, engineerStock_controller_1.default.faultyReturn);
+// receive stock
+engineerStockRouter.get(`/receive`, engineerStock_controller_1.default.receive);
 // status update
-engineerStockRouter.put(`/status/:stockId`, engineerStock_controller_1.default.statusUpdate);
+engineerStockRouter.put(`/:stockId`, engineerStock_controller_1.default.update);
 exports.default = engineerStockRouter;

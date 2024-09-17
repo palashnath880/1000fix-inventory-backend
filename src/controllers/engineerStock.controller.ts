@@ -3,6 +3,15 @@ import { prisma } from "../server";
 import moment from "moment-timezone";
 import { engineerStockBySkuId } from "../utils/stock.utils";
 
+type FaultyReturn = {
+  note: string;
+  quantity: number;
+  skuCodeId: string;
+  type: "faulty" | "transfer";
+  engineerId: string;
+  branchId: string;
+};
+
 // transfer to engineer
 const transfer = async (req: Request, res: Response) => {
   try {
@@ -17,17 +26,40 @@ const transfer = async (req: Request, res: Response) => {
   }
 };
 
+// receive stock list
+const receive = async (req: Request, res: Response) => {
+  try {
+    const userId = req.cookies?.user?.id;
+    const result = await prisma.engineerStock.findMany({
+      where: { engineerId: userId, status: "open", type: "transfer" },
+      orderBy: {
+        createdAt: "asc",
+      },
+      include: {
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 // status handler
-const statusUpdate = async (
+const update = async (
   req: Request<
-    { id: string },
+    { stockId: string },
     {},
     { note: string; status: "received" | "rejected"; endAt: string }
   >,
   res: Response
 ) => {
   try {
-    const id = req.params.id;
+    const id = req.params.stockId;
     const data = req.body;
     data.endAt = moment.tz("Asia/Dhaka").toISOString();
 
@@ -37,6 +69,7 @@ const statusUpdate = async (
     });
     res.send(result);
   } catch (err) {
+    console.log(err);
     res.status(400).send(err);
   }
 };
@@ -50,7 +83,7 @@ const ownStock = async (
     {
       category: string;
       model: string;
-      skuCode: string;
+      skuId: string;
     }
   >,
   res: Response
@@ -60,7 +93,7 @@ const ownStock = async (
 
     const category = req?.query?.category;
     const model = req?.query?.model;
-    const skuCode = req?.query?.skuCode;
+    const skuCode = req?.query?.skuId;
 
     const stockArr: any[] = [];
 
@@ -100,6 +133,33 @@ const ownStock = async (
         stockArr.push(stock);
       }
     }
+
+    res.send(stockArr);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// faulty stock return
+const faultyReturn = async (
+  req: Request<{}, {}, { list: FaultyReturn[] }>,
+  res: Response
+) => {
+  try {
+    const data = req.body.list;
+    const engineerId = req.cookies?.user?.id;
+    const branchId = req.cookies?.user?.branchId;
+
+    const list: FaultyReturn[] = data.map((i) => ({
+      ...i,
+      engineerId: engineerId,
+      type: "faulty",
+      branchId: branchId,
+    }));
+
+    const result = await prisma.engineerStock.createMany({ data: list });
+
+    res.send(result);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -120,4 +180,11 @@ const stockBySkuId = async (
   }
 };
 
-export default { transfer, statusUpdate, ownStock, stockBySkuId };
+export default {
+  transfer,
+  receive,
+  update,
+  ownStock,
+  stockBySkuId,
+  faultyReturn,
+};
