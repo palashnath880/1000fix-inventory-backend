@@ -139,6 +139,73 @@ const faultyReturn = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(400).send(err);
     }
 });
+// stock transfer report
+const stockReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const engineerId = req.params.userId;
+        const fromDate = ((_a = req.query) === null || _a === void 0 ? void 0 : _a.fromDate) ? new Date(req.query.fromDate) : "";
+        const toDate = ((_b = req.query) === null || _b === void 0 ? void 0 : _b.toDate) ? new Date(req.query.toDate) : "";
+        if (!fromDate || !toDate) {
+            return res.send([]);
+        }
+        const result = yield server_1.prisma.engineerStock.findMany({
+            where: {
+                engineerId: engineerId,
+                type: "transfer",
+                status: { in: ["received", "rejected"] },
+                createdAt: {
+                    gte: fromDate,
+                    lte: toDate,
+                },
+            },
+            include: {
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// stock faulty return report
+const faultyReturnReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const engineerId = req.params.userId;
+        const fromDate = ((_a = req.query) === null || _a === void 0 ? void 0 : _a.fromDate) ? new Date(req.query.fromDate) : "";
+        const toDate = ((_b = req.query) === null || _b === void 0 ? void 0 : _b.toDate) ? new Date(req.query.toDate) : "";
+        if (!fromDate || !toDate) {
+            return res.send([]);
+        }
+        const result = yield server_1.prisma.engineerStock.findMany({
+            where: {
+                engineerId: engineerId,
+                type: "faulty",
+                createdAt: {
+                    gte: fromDate,
+                    lte: toDate,
+                },
+            },
+            include: {
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 // engineer stock by sku id
 const stockBySkuId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -158,4 +225,6 @@ exports.default = {
     ownStock,
     stockBySkuId,
     faultyReturn,
+    faultyReturnReport,
+    stockReport,
 };

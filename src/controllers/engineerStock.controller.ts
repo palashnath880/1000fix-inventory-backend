@@ -165,6 +165,93 @@ const faultyReturn = async (
   }
 };
 
+// stock transfer report
+const stockReport = async (
+  req: Request<
+    { userId: string },
+    {},
+    {},
+    { fromDate: string; toDate: string }
+  >,
+  res: Response
+) => {
+  try {
+    const engineerId = req.params.userId;
+    const fromDate = req.query?.fromDate ? new Date(req.query.fromDate) : "";
+    const toDate = req.query?.toDate ? new Date(req.query.toDate) : "";
+
+    if (!fromDate || !toDate) {
+      return res.send([]);
+    }
+
+    const result = await prisma.engineerStock.findMany({
+      where: {
+        engineerId: engineerId,
+        type: "transfer",
+        status: { in: ["received", "rejected"] },
+        createdAt: {
+          gte: fromDate,
+          lte: toDate,
+        },
+      },
+      include: {
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// stock faulty return report
+const faultyReturnReport = async (
+  req: Request<
+    { userId: string },
+    {},
+    {},
+    { fromDate: string; toDate: string }
+  >,
+  res: Response
+) => {
+  try {
+    const engineerId = req.params.userId;
+    const fromDate = req.query?.fromDate ? new Date(req.query.fromDate) : "";
+    const toDate = req.query?.toDate ? new Date(req.query.toDate) : "";
+
+    if (!fromDate || !toDate) {
+      return res.send([]);
+    }
+
+    const result = await prisma.engineerStock.findMany({
+      where: {
+        engineerId: engineerId,
+        type: "faulty",
+        createdAt: {
+          gte: fromDate,
+          lte: toDate,
+        },
+      },
+      include: {
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 // engineer stock by sku id
 const stockBySkuId = async (
   req: Request<{ userId: string; skuId: string }>,
@@ -187,4 +274,6 @@ export default {
   ownStock,
   stockBySkuId,
   faultyReturn,
+  faultyReturnReport,
+  stockReport,
 };
