@@ -13,12 +13,14 @@ const create = async (
       role: "admin" | "manager" | "engineer";
       password: string;
       username: string;
+      branchId: string;
     }
   >,
   res: Response
 ) => {
   try {
     const user = req.body;
+    const branchId = req.cookies?.user?.branchId || "";
 
     // get user by email
     const getUser = await prisma.user.findUnique({
@@ -37,6 +39,10 @@ const create = async (
     // hash password
     const password = await hashPassword(user.password);
     user.password = password;
+
+    if (user.role === "engineer") {
+      user.branchId = branchId;
+    }
 
     // insert user
     const result = await prisma.user.create({

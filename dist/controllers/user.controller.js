@@ -13,8 +13,10 @@ const server_1 = require("../server");
 const user_utils_1 = require("../utils/user.utils");
 // user create controller
 const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         const user = req.body;
+        const branchId = ((_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId) || "";
         // get user by email
         const getUser = yield server_1.prisma.user.findUnique({
             where: { email: user.email },
@@ -29,6 +31,9 @@ const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // hash password
         const password = yield (0, user_utils_1.hashPassword)(user.password);
         user.password = password;
+        if (user.role === "engineer") {
+            user.branchId = branchId;
+        }
         // insert user
         const result = yield server_1.prisma.user.create({
             data: user,
