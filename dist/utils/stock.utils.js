@@ -207,10 +207,10 @@ const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0
                 skuCodeId: skuId,
             },
         });
-        const faulty = yield server_1.prisma.engineerStock.aggregate({
+        const returnStock = yield server_1.prisma.engineerStock.aggregate({
             _sum: { quantity: true },
             where: {
-                type: "faulty",
+                type: { in: ["return", "faulty"] },
                 engineerId: userId,
                 skuCodeId: skuId,
                 status: { in: ["open", "received"] },
@@ -228,8 +228,8 @@ const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0
         let quantity = 0;
         if ((_a = received === null || received === void 0 ? void 0 : received._sum) === null || _a === void 0 ? void 0 : _a.quantity)
             quantity += (_b = received === null || received === void 0 ? void 0 : received._sum) === null || _b === void 0 ? void 0 : _b.quantity;
-        if ((_c = faulty === null || faulty === void 0 ? void 0 : faulty._sum) === null || _c === void 0 ? void 0 : _c.quantity)
-            quantity -= (_d = faulty === null || faulty === void 0 ? void 0 : faulty._sum) === null || _d === void 0 ? void 0 : _d.quantity;
+        if ((_c = returnStock === null || returnStock === void 0 ? void 0 : returnStock._sum) === null || _c === void 0 ? void 0 : _c.quantity)
+            quantity -= (_d = returnStock === null || returnStock === void 0 ? void 0 : returnStock._sum) === null || _d === void 0 ? void 0 : _d.quantity;
         if ((_e = sell === null || sell === void 0 ? void 0 : sell._sum) === null || _e === void 0 ? void 0 : _e.quantity)
             quantity -= (_f = sell === null || sell === void 0 ? void 0 : sell._sum) === null || _f === void 0 ? void 0 : _f.quantity;
         return { quantity, skuCode, avgPrice };

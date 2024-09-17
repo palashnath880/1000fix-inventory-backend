@@ -7,7 +7,7 @@ type FaultyReturn = {
   note: string;
   quantity: number;
   skuCodeId: string;
-  type: "faulty" | "transfer";
+  type: "faulty" | "transfer" | "return";
   engineerId: string;
   branchId: string;
 };
@@ -140,6 +140,31 @@ const ownStock = async (
   }
 };
 
+//  stock return
+const stockReturn = async (
+  req: Request<{}, {}, { list: FaultyReturn[] }>,
+  res: Response
+) => {
+  try {
+    const data = req.body.list;
+    const engineerId = req.cookies?.user?.id;
+    const branchId = req.cookies?.user?.branchId;
+
+    const list: FaultyReturn[] = data.map((i) => ({
+      ...i,
+      engineerId: engineerId,
+      type: "return",
+      branchId: branchId,
+    }));
+
+    const result = await prisma.engineerStock.createMany({ data: list });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 // faulty stock return
 const faultyReturn = async (
   req: Request<{}, {}, { list: FaultyReturn[] }>,
@@ -209,13 +234,13 @@ const stockReport = async (
   }
 };
 
-// stock faulty return report
-const faultyReturnReport = async (
+// stock faulty and stock return report
+const report = async (
   req: Request<
     { userId: string },
     {},
     {},
-    { fromDate: string; toDate: string }
+    { fromDate: string; toDate: string; type: "return" | "faulty" }
   >,
   res: Response
 ) => {
@@ -223,6 +248,7 @@ const faultyReturnReport = async (
     const engineerId = req.params.userId;
     const fromDate = req.query?.fromDate ? new Date(req.query.fromDate) : "";
     const toDate = req.query?.toDate ? new Date(req.query.toDate) : "";
+    const type = req.query?.type || "return";
 
     if (!fromDate || !toDate) {
       return res.send([]);
@@ -231,7 +257,7 @@ const faultyReturnReport = async (
     const result = await prisma.engineerStock.findMany({
       where: {
         engineerId: engineerId,
-        type: "faulty",
+        type: type,
         createdAt: {
           gte: fromDate,
           lte: toDate,
@@ -274,6 +300,7 @@ export default {
   ownStock,
   stockBySkuId,
   faultyReturn,
-  faultyReturnReport,
+  report,
   stockReport,
+  stockReturn,
 };

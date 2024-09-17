@@ -124,6 +124,21 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
+//  stock return
+const stockReturn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    try {
+        const data = req.body.list;
+        const engineerId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
+        const branchId = (_d = (_c = req.cookies) === null || _c === void 0 ? void 0 : _c.user) === null || _d === void 0 ? void 0 : _d.branchId;
+        const list = data.map((i) => (Object.assign(Object.assign({}, i), { engineerId: engineerId, type: "return", branchId: branchId })));
+        const result = yield server_1.prisma.engineerStock.createMany({ data: list });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 // faulty stock return
 const faultyReturn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
@@ -173,20 +188,21 @@ const stockReport = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         res.status(400).send(err);
     }
 });
-// stock faulty return report
-const faultyReturnReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+// stock faulty and stock return report
+const report = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
     try {
         const engineerId = req.params.userId;
         const fromDate = ((_a = req.query) === null || _a === void 0 ? void 0 : _a.fromDate) ? new Date(req.query.fromDate) : "";
         const toDate = ((_b = req.query) === null || _b === void 0 ? void 0 : _b.toDate) ? new Date(req.query.toDate) : "";
+        const type = ((_c = req.query) === null || _c === void 0 ? void 0 : _c.type) || "return";
         if (!fromDate || !toDate) {
             return res.send([]);
         }
         const result = yield server_1.prisma.engineerStock.findMany({
             where: {
                 engineerId: engineerId,
-                type: "faulty",
+                type: type,
                 createdAt: {
                     gte: fromDate,
                     lte: toDate,
@@ -225,6 +241,7 @@ exports.default = {
     ownStock,
     stockBySkuId,
     faultyReturn,
-    faultyReturnReport,
+    report,
     stockReport,
+    stockReturn,
 };
