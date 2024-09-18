@@ -486,21 +486,70 @@ const getDefective = async (
   }
 };
 
-const moveToScrap = async (
-  req: Request<{}, {}, { list: { skuCodeId: string; quantity: number }[] }>,
+// defective to scrap
+const sendDefective = async (
+  req: Request<
+    {},
+    {},
+    {
+      list: {
+        skuCodeId: string;
+        quantity: number;
+        type: "defective" | "scrap";
+      }[];
+    }
+  >,
   res: Response
 ) => {
   try {
     const branchId = req.cookies?.user?.branchId;
-    const data = req.body.list;
+    let data = req.body.list;
+    const challan: string = `DC-${generateChallan()}`;
+
+    data = data.map((i) => ({ ...i, type: "defective" }));
+
+    const result = await prisma.stock.create({
+      data: {
+        type: "defective",
+        senderId: branchId,
+        challan: challan,
+        items: { create: data },
+      },
+    });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// defective to scrap
+const moveToScrap = async (
+  req: Request<
+    {},
+    {},
+    {
+      list: {
+        skuCodeId: string;
+        quantity: number;
+        type: "defective" | "scrap";
+      }[];
+    }
+  >,
+  res: Response
+) => {
+  try {
+    const branchId = req.cookies?.user?.branchId;
+    let data = req.body.list;
     const challan: string = `SC-${generateChallan()}`;
+
+    data = data.map((i) => ({ ...i, type: "scrap" }));
 
     const result = await prisma.stock.create({
       data: {
         type: "scrap",
         senderId: branchId,
         challan: challan,
-        scrapItems: { create: data },
+        items: { create: data },
       },
     });
     res.send(result);
@@ -524,4 +573,5 @@ export default {
   engineerStockBySku,
   getDefective,
   moveToScrap,
+  sendDefective,
 };

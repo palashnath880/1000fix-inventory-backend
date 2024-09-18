@@ -45,6 +45,9 @@ stockRouter.get(`/approval`, stockController.approvalStock);
 // get defective stock
 stockRouter.get(`/defective`, stockController.getDefective);
 
+// send defective stock
+stockRouter.post(`/defective-send`, stockController.sendDefective);
+
 // defective to scrap
 stockRouter.post(`/scrap`, stockController.moveToScrap);
 

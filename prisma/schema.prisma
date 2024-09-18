@@ -22,6 +22,11 @@ enum StockType {
   scrap
 }
 
+enum StockItemType {
+  defective
+  scrap
+}
+
 enum EnStockType {
   transfer
   return
@@ -107,7 +112,7 @@ model SkuCode {
   stocks      Stock[]
   enStock     EngineerStock[]
   jobItems    JobItem[]
-  scrapItems ScrapItem[]
+  scrapItems StockItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
 }
@@ -127,15 +132,16 @@ model Stock {
   receiverId String? 
   skuCode    SkuCode? @relation(fields: [skuCodeId],references: [id])
   skuCodeId  String?
-  scrapItems ScrapItem[]  
+  items      StockItem[]
   endAt      DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) 
 }
 
-model ScrapItem {
+model StockItem {
   id         String   @id @default(uuid())
   quantity   Float    @default(0)
+  type       StockItemType
   challan    Stock    @relation(fields: [challanId], references: [id])
   challanId  String
   skuCode    SkuCode  @relation(fields: [skuCodeId],references: [id])

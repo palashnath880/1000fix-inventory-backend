@@ -94,13 +94,15 @@ const getBranchDefective = async (branchId: string, skuId: string) => {
     });
 
     // send defective quantity
-    const send = await prisma.stock.aggregate({
+    const send = await prisma.stockItem.aggregate({
       _sum: { quantity: true },
       where: {
         type: "defective",
-        senderId: branchId,
         skuCodeId: skuId,
-        status: { in: ["open", "received"] },
+        challan: {
+          senderId: branchId,
+          status: { in: ["open", "received"] },
+        },
       },
     });
 
@@ -125,9 +127,13 @@ const getBranchDefective = async (branchId: string, skuId: string) => {
       },
     });
 
-    const scrap = await prisma.scrapItem.aggregate({
+    const scrap = await prisma.stockItem.aggregate({
       _sum: { quantity: true },
-      where: { skuCodeId: skuId, challan: { senderId: branchId } },
+      where: {
+        skuCodeId: skuId,
+        challan: { senderId: branchId },
+        type: "scrap",
+      },
     });
 
     // defective quantity

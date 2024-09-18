@@ -416,18 +416,42 @@ const getDefective = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(400).send(err);
     }
 });
+// defective to scrap
+const sendDefective = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        let data = req.body.list;
+        const challan = `DC-${(0, challan_utils_1.generateChallan)()}`;
+        data = data.map((i) => (Object.assign(Object.assign({}, i), { type: "defective" })));
+        const result = yield server_1.prisma.stock.create({
+            data: {
+                type: "defective",
+                senderId: branchId,
+                challan: challan,
+                items: { create: data },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// defective to scrap
 const moveToScrap = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
         const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
-        const data = req.body.list;
+        let data = req.body.list;
         const challan = `SC-${(0, challan_utils_1.generateChallan)()}`;
+        data = data.map((i) => (Object.assign(Object.assign({}, i), { type: "scrap" })));
         const result = yield server_1.prisma.stock.create({
             data: {
                 type: "scrap",
                 senderId: branchId,
                 challan: challan,
-                scrapItems: { create: data },
+                items: { create: data },
             },
         });
         res.send(result);
@@ -451,4 +475,5 @@ exports.default = {
     engineerStockBySku,
     getDefective,
     moveToScrap,
+    sendDefective,
 };
