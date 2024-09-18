@@ -45,4 +45,7 @@ stockRouter.get(`/approval`, stockController.approvalStock);
 // get defective stock
 stockRouter.get(`/defective`, stockController.getDefective);
 
+// defective to scrap
+stockRouter.post(`/scrap`, stockController.moveToScrap);
+
 export default stockRouter;

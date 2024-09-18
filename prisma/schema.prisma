@@ -125,8 +125,8 @@ model Stock {
   senderId   String?
   receiver   Branch? @relation("receiver", fields: [receiverId],references: [id])
   receiverId String? 
-  skuCode    SkuCode @relation(fields: [skuCodeId],references: [id])
-  skuCodeId  String
+  skuCode    SkuCode? @relation(fields: [skuCodeId],references: [id])
+  skuCodeId  String?
   scrapItems ScrapItem[]  
   endAt      DateTime?
   createdAt  DateTime @default(now())
@@ -135,8 +135,8 @@ model Stock {
 
 model ScrapItem {
   id         String   @id @default(uuid())
-  quantity   Float?   @default(0)
-  challan    Stock    @relation(fields: [challanId],references: [id])
+  quantity   Float    @default(0)
+  challan    Stock    @relation(fields: [challanId], references: [id])
   challanId  String
   skuCode    SkuCode  @relation(fields: [skuCodeId],references: [id])
   skuCodeId  String  

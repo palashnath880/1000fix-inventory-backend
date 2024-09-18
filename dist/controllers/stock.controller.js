@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = require("../server");
 const stock_utils_1 = require("../utils/stock.utils");
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
+const challan_utils_1 = require("../utils/challan.utils");
 // stock entry
 const entry = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
@@ -415,6 +416,26 @@ const getDefective = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(400).send(err);
     }
 });
+const moveToScrap = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const data = req.body.list;
+        const challan = `SC-${(0, challan_utils_1.generateChallan)()}`;
+        const result = yield server_1.prisma.stock.create({
+            data: {
+                type: "scrap",
+                senderId: branchId,
+                challan: challan,
+                scrapItems: { create: data },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 exports.default = {
     entry,
     transfer,
@@ -429,4 +450,5 @@ exports.default = {
     returnStock,
     engineerStockBySku,
     getDefective,
+    moveToScrap,
 };

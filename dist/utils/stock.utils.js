@@ -81,7 +81,7 @@ const getSellQuantity = (branchId, skuId) => __awaiter(void 0, void 0, void 0, f
 });
 // get branch defective
 const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     try {
         let quantity = 0;
         // get generate defective quantity
@@ -126,6 +126,10 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
                 branchId: branchId,
             },
         });
+        const scrap = yield server_1.prisma.scrapItem.aggregate({
+            _sum: { quantity: true },
+            where: { skuCodeId: skuId, challan: { senderId: branchId } },
+        });
         // defective quantity
         if ((_a = defective === null || defective === void 0 ? void 0 : defective._sum) === null || _a === void 0 ? void 0 : _a.quantity)
             quantity += defective._sum.quantity;
@@ -138,6 +142,9 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         // engineer faulty
         if ((_d = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _d === void 0 ? void 0 : _d.quantity)
             quantity += engineer._sum.quantity;
+        // scrap quantity
+        if ((_e = scrap === null || scrap === void 0 ? void 0 : scrap._sum) === null || _e === void 0 ? void 0 : _e.quantity)
+            quantity -= scrap._sum.quantity;
         return quantity;
     }
     catch (err) {

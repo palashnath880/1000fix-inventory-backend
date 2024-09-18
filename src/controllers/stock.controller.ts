@@ -6,6 +6,7 @@ import {
   getBranchDefective,
 } from "../utils/stock.utils";
 import moment from "moment-timezone";
+import { generateChallan } from "../utils/challan.utils";
 
 type Stock = {
   type: "entry" | "transfer" | "defective" | "faulty";
@@ -485,6 +486,29 @@ const getDefective = async (
   }
 };
 
+const moveToScrap = async (
+  req: Request<{}, {}, { list: { skuCodeId: string; quantity: number }[] }>,
+  res: Response
+) => {
+  try {
+    const branchId = req.cookies?.user?.branchId;
+    const data = req.body.list;
+    const challan: string = `SC-${generateChallan()}`;
+
+    const result = await prisma.stock.create({
+      data: {
+        type: "scrap",
+        senderId: branchId,
+        challan: challan,
+        scrapItems: { create: data },
+      },
+    });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   entry,
   transfer,
@@ -499,4 +523,5 @@ export default {
   returnStock,
   engineerStockBySku,
   getDefective,
+  moveToScrap,
 };

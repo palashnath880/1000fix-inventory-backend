@@ -32,4 +32,6 @@ stockRouter.put(`/status/:stockId`, stock_controller_1.default.statusUpdate);
 stockRouter.get(`/approval`, stock_controller_1.default.approvalStock);
 // get defective stock
 stockRouter.get(`/defective`, stock_controller_1.default.getDefective);
+// defective to scrap
+stockRouter.post(`/scrap`, stock_controller_1.default.moveToScrap);
 exports.default = stockRouter;
