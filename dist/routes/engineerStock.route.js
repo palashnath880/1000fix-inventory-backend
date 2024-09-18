@@ -14,6 +14,8 @@ engineerStockRouter.get(`/get-by-sku/:userId/:skuId`, engineerStock_controller_1
 engineerStockRouter.post(`/transfer`, engineerStock_controller_1.default.transfer);
 // stock return
 engineerStockRouter.post(`/return`, engineerStock_controller_1.default.stockReturn);
+// return faulty and good stock by branch
+engineerStockRouter.get(`/return-stock/:type`, engineerStock_controller_1.default.stockByBranch);
 // faulty stock return
 engineerStockRouter.post(`/faulty-return`, engineerStock_controller_1.default.faultyReturn);
 // faulty stock return report

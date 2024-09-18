@@ -15,6 +15,9 @@ engineerStockRouter.post(`/transfer`, controller.transfer);
 // stock return
 engineerStockRouter.post(`/return`, controller.stockReturn);
 
+// return faulty and good stock by branch
+engineerStockRouter.get(`/return-stock/:type`, controller.stockByBranch);
+
 // faulty stock return
 engineerStockRouter.post(`/faulty-return`, controller.faultyReturn);
 

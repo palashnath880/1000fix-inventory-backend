@@ -154,6 +154,29 @@ const faultyReturn = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(400).send(err);
     }
 });
+// return faulty and good stock by branch
+const stockByBranch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const branchId = (_b = (_a = req === null || req === void 0 ? void 0 : req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const type = req.params.type;
+        const result = yield server_1.prisma.engineerStock.findMany({
+            where: { branchId: branchId, status: "open", type: type },
+            include: {
+                engineer: true,
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 // stock transfer report
 const stockReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -244,4 +267,5 @@ exports.default = {
     report,
     stockReport,
     stockReturn,
+    stockByBranch,
 };

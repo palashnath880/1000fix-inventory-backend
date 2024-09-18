@@ -366,6 +366,55 @@ const approvalStock = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(400).send(err);
     }
 });
+// get defective by branch
+const getDefective = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d, _e;
+    try {
+        const branchId = (_b = (_a = req === null || req === void 0 ? void 0 : req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const category = (_c = req === null || req === void 0 ? void 0 : req.query) === null || _c === void 0 ? void 0 : _c.category;
+        const model = (_d = req === null || req === void 0 ? void 0 : req.query) === null || _d === void 0 ? void 0 : _d.model;
+        const skuCode = (_e = req === null || req === void 0 ? void 0 : req.query) === null || _e === void 0 ? void 0 : _e.skuCode;
+        const stockArr = [];
+        const skuIds = [];
+        if (skuCode) {
+            skuIds.push(skuCode);
+        }
+        else {
+            let search = {};
+            if (model) {
+                search = { item: { modelId: model } };
+            }
+            else if (category) {
+                search = { item: { model: { categoryId: category } } };
+            }
+            const skuCodes = yield server_1.prisma.skuCode.findMany({
+                where: search,
+                select: {
+                    id: true,
+                },
+            });
+            for (const sku of skuCodes) {
+                skuIds.push(sku.id);
+            }
+        }
+        // get defective by sku id
+        for (const id of skuIds) {
+            const getSku = yield server_1.prisma.skuCode.findUnique({
+                where: { id },
+                include: {
+                    item: { include: { model: { include: { category: true } } } },
+                },
+            });
+            const quantity = yield (0, stock_utils_1.getBranchDefective)(branchId, id);
+            if (quantity > 0)
+                stockArr.push({ skuCode: getSku, quantity });
+        }
+        res.send(stockArr);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 exports.default = {
     entry,
     transfer,
@@ -379,4 +428,5 @@ exports.default = {
     approvalStock,
     returnStock,
     engineerStockBySku,
+    getDefective,
 };

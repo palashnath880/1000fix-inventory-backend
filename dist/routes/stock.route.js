@@ -30,4 +30,6 @@ stockRouter.get(`/receive/report`, stock_controller_1.default.receiveReport);
 stockRouter.put(`/status/:stockId`, stock_controller_1.default.statusUpdate);
 // get approval stock
 stockRouter.get(`/approval`, stock_controller_1.default.approvalStock);
+// get defective stock
+stockRouter.get(`/defective`, stock_controller_1.default.getDefective);
 exports.default = stockRouter;

@@ -75,7 +75,7 @@ const getSellQuantity = async (branchId: string, skuId: string) => {
 };
 
 // get branch defective
-const getDefective = async (branchId: string, skuId: string) => {
+const getBranchDefective = async (branchId: string, skuId: string) => {
   try {
     let quantity: number = 0;
 
@@ -94,7 +94,7 @@ const getDefective = async (branchId: string, skuId: string) => {
     });
 
     // send defective quantity
-    const sendDefective = await prisma.stock.aggregate({
+    const send = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: {
         type: "defective",
@@ -104,11 +104,35 @@ const getDefective = async (branchId: string, skuId: string) => {
       },
     });
 
+    // receive defective quantity
+    const receive = await prisma.stock.aggregate({
+      _sum: { quantity: true },
+      where: {
+        type: "defective",
+        receiverId: branchId,
+        skuCodeId: skuId,
+        status: "received",
+      },
+    });
+
+    // defective from engineer faulty
+    const engineer = await prisma.engineerStock.aggregate({
+      _sum: { quantity: true },
+      where: {
+        type: "faulty",
+        skuCode: { id: skuId, isDefective: true },
+        branchId: branchId,
+      },
+    });
+
     // defective quantity
     if (defective?._sum?.quantity) quantity += defective._sum.quantity;
-
     // send defective
-    if (sendDefective?._sum?.quantity) quantity -= sendDefective._sum.quantity;
+    if (send?._sum?.quantity) quantity -= send._sum.quantity;
+    // receive defective
+    if (receive?._sum?.quantity) quantity += receive._sum.quantity;
+    // engineer faulty
+    if (engineer?._sum?.quantity) quantity += engineer._sum.quantity;
 
     return quantity;
   } catch (err: any) {
@@ -159,10 +183,15 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
       where: { skuCodeId: skuId, type: "transfer", branchId: branchId },
     });
 
+    const enReturn = await prisma.engineerStock.aggregate({
+      _sum: { quantity: true },
+      where: { skuCodeId: skuId, type: "return", branchId: branchId },
+    });
+
     const skuCode = await getSku(skuId);
     const avgPrice = await getAvgPrice(skuId);
     const sellQuantity = await getSellQuantity(branchId, skuId);
-    const defective = await getDefective(branchId, skuId);
+    const defective = await getBranchDefective(branchId, skuId);
 
     const result: {
       skuCode: any;
@@ -191,6 +220,9 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
 
     // engineer transfer quantity
     if (engineer?._sum?.quantity) result.quantity -= engineer._sum.quantity;
+
+    // engineer return good quantity
+    if (enReturn?._sum?.quantity) result.quantity -= enReturn._sum.quantity;
 
     // minus sell quantity
     if (sellQuantity) result.quantity -= sellQuantity;
@@ -249,4 +281,4 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
   }
 };
 
-export { branchStockBySkuId, engineerStockBySkuId };
+export { branchStockBySkuId, engineerStockBySkuId, getBranchDefective };

@@ -12,5 +12,5 @@ authRouter.post(`/login`, auth_controller_1.default.login);
 // user route
 authRouter.post(`/user`, verifyToken_1.verifyAuthToken, auth_controller_1.default.loadUser);
 // change password route
-authRouter.post(`/change-password`, verifyToken_1.verifyAuthToken, auth_controller_1.default.loadUser);
+authRouter.post(`/change-password`, verifyToken_1.verifyAuthToken, auth_controller_1.default.changePassword);
 exports.default = authRouter;

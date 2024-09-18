@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
-import { branchStockBySkuId, engineerStockBySkuId } from "../utils/stock.utils";
+import {
+  branchStockBySkuId,
+  engineerStockBySkuId,
+  getBranchDefective,
+} from "../utils/stock.utils";
 import moment from "moment-timezone";
 
 type Stock = {
@@ -419,6 +423,68 @@ const approvalStock = async (req: Request, res: Response) => {
   }
 };
 
+// get defective by branch
+const getDefective = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      category: string;
+      model: string;
+      skuCode: string;
+    }
+  >,
+  res: Response
+) => {
+  try {
+    const branchId = req?.cookies?.user?.branchId;
+    const category = req?.query?.category;
+    const model = req?.query?.model;
+    const skuCode = req?.query?.skuCode;
+
+    const stockArr: any[] = [];
+    const skuIds: string[] = [];
+
+    if (skuCode) {
+      skuIds.push(skuCode);
+    } else {
+      let search = {};
+      if (model) {
+        search = { item: { modelId: model } };
+      } else if (category) {
+        search = { item: { model: { categoryId: category } } };
+      }
+
+      const skuCodes = await prisma.skuCode.findMany({
+        where: search,
+        select: {
+          id: true,
+        },
+      });
+      for (const sku of skuCodes) {
+        skuIds.push(sku.id);
+      }
+    }
+
+    // get defective by sku id
+    for (const id of skuIds) {
+      const getSku = await prisma.skuCode.findUnique({
+        where: { id },
+        include: {
+          item: { include: { model: { include: { category: true } } } },
+        },
+      });
+      const quantity = await getBranchDefective(branchId, id);
+      if (quantity > 0) stockArr.push({ skuCode: getSku, quantity });
+    }
+
+    res.send(stockArr);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   entry,
   transfer,
@@ -432,4 +498,5 @@ export default {
   approvalStock,
   returnStock,
   engineerStockBySku,
+  getDefective,
 };

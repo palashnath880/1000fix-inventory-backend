@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.engineerStockBySkuId = exports.branchStockBySkuId = void 0;
+exports.getBranchDefective = exports.engineerStockBySkuId = exports.branchStockBySkuId = void 0;
 const server_1 = require("../server");
 // get average price by sku id
 const getAvgPrice = (skuId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -80,8 +80,8 @@ const getSellQuantity = (branchId, skuId) => __awaiter(void 0, void 0, void 0, f
     }
 });
 // get branch defective
-const getDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
     try {
         let quantity = 0;
         // get generate defective quantity
@@ -98,7 +98,7 @@ const getDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0, func
             },
         });
         // send defective quantity
-        const sendDefective = yield server_1.prisma.stock.aggregate({
+        const send = yield server_1.prisma.stock.aggregate({
             _sum: { quantity: true },
             where: {
                 type: "defective",
@@ -107,21 +107,47 @@ const getDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0, func
                 status: { in: ["open", "received"] },
             },
         });
+        // receive defective quantity
+        const receive = yield server_1.prisma.stock.aggregate({
+            _sum: { quantity: true },
+            where: {
+                type: "defective",
+                receiverId: branchId,
+                skuCodeId: skuId,
+                status: "received",
+            },
+        });
+        // defective from engineer faulty
+        const engineer = yield server_1.prisma.engineerStock.aggregate({
+            _sum: { quantity: true },
+            where: {
+                type: "faulty",
+                skuCode: { id: skuId, isDefective: true },
+                branchId: branchId,
+            },
+        });
         // defective quantity
         if ((_a = defective === null || defective === void 0 ? void 0 : defective._sum) === null || _a === void 0 ? void 0 : _a.quantity)
             quantity += defective._sum.quantity;
         // send defective
-        if ((_b = sendDefective === null || sendDefective === void 0 ? void 0 : sendDefective._sum) === null || _b === void 0 ? void 0 : _b.quantity)
-            quantity -= sendDefective._sum.quantity;
+        if ((_b = send === null || send === void 0 ? void 0 : send._sum) === null || _b === void 0 ? void 0 : _b.quantity)
+            quantity -= send._sum.quantity;
+        // receive defective
+        if ((_c = receive === null || receive === void 0 ? void 0 : receive._sum) === null || _c === void 0 ? void 0 : _c.quantity)
+            quantity += receive._sum.quantity;
+        // engineer faulty
+        if ((_d = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _d === void 0 ? void 0 : _d.quantity)
+            quantity += engineer._sum.quantity;
         return quantity;
     }
     catch (err) {
         throw new Error(err);
     }
 });
+exports.getBranchDefective = getBranchDefective;
 // get branch stock by sku id
 const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     try {
         const entry = yield server_1.prisma.stock.aggregate({
             _sum: { quantity: true },
@@ -158,10 +184,14 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
             _sum: { quantity: true },
             where: { skuCodeId: skuId, type: "transfer", branchId: branchId },
         });
+        const enReturn = yield server_1.prisma.engineerStock.aggregate({
+            _sum: { quantity: true },
+            where: { skuCodeId: skuId, type: "return", branchId: branchId },
+        });
         const skuCode = yield getSku(skuId);
         const avgPrice = yield getAvgPrice(skuId);
         const sellQuantity = yield getSellQuantity(branchId, skuId);
-        const defective = yield getDefective(branchId, skuId);
+        const defective = yield getBranchDefective(branchId, skuId);
         const result = {
             skuCode,
             avgPrice,
@@ -183,6 +213,9 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         // engineer transfer quantity
         if ((_e = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _e === void 0 ? void 0 : _e.quantity)
             result.quantity -= engineer._sum.quantity;
+        // engineer return good quantity
+        if ((_f = enReturn === null || enReturn === void 0 ? void 0 : enReturn._sum) === null || _f === void 0 ? void 0 : _f.quantity)
+            result.quantity -= enReturn._sum.quantity;
         // minus sell quantity
         if (sellQuantity)
             result.quantity -= sellQuantity;

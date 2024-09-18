@@ -42,4 +42,7 @@ stockRouter.put(`/status/:stockId`, stockController.statusUpdate);
 // get approval stock
 stockRouter.get(`/approval`, stockController.approvalStock);
 
+// get defective stock
+stockRouter.get(`/defective`, stockController.getDefective);
+
 export default stockRouter;

@@ -190,6 +190,32 @@ const faultyReturn = async (
   }
 };
 
+// return faulty and good stock by branch
+const stockByBranch = async (
+  req: Request<{ type: "return" | "faulty" }>,
+  res: Response
+) => {
+  try {
+    const branchId = req?.cookies?.user?.branchId;
+    const type = req.params.type;
+
+    const result = await prisma.engineerStock.findMany({
+      where: { branchId: branchId, status: "open", type: type },
+      include: {
+        engineer: true,
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 // stock transfer report
 const stockReport = async (
   req: Request<
@@ -303,4 +329,5 @@ export default {
   report,
   stockReport,
   stockReturn,
+  stockByBranch,
 };
