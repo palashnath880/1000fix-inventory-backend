@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../server";
 import { compare } from "bcrypt";
 import { sign } from "jsonwebtoken";
+import { hashPassword } from "../utils/user.utils";
 
 // login
 const login = async (
@@ -75,4 +76,36 @@ const sendPasswordResetLink = async (req: Request, res: Response) => {
   }
 };
 
-export default { login, loadUser, sendPasswordResetLink };
+const changePassword = async (
+  req: Request<{}, {}, { prev: string; new: string }>,
+  res: Response
+) => {
+  try {
+    const prevPwd = req.body.prev;
+    const newPwd = req.body.new;
+    const userId = req.cookies?.user?.id;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    if (!(await compare(prevPwd, user.password))) {
+      return res
+        .status(401)
+        .send({ message: "Previous password doesn't matched" });
+    }
+
+    const password = await hashPassword(newPwd);
+
+    const result = await prisma.user.update({
+      data: { password },
+      where: { id: userId },
+    });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+export default { login, loadUser, sendPasswordResetLink, changePassword };

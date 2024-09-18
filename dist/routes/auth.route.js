@@ -11,4 +11,6 @@ const authRouter = (0, express_1.Router)();
 authRouter.post(`/login`, auth_controller_1.default.login);
 // user route
 authRouter.post(`/user`, verifyToken_1.verifyAuthToken, auth_controller_1.default.loadUser);
+// change password route
+authRouter.post(`/change-password`, verifyToken_1.verifyAuthToken, auth_controller_1.default.loadUser);
 exports.default = authRouter;
