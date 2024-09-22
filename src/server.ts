@@ -19,6 +19,8 @@ async function main() {
   const urls: string[] = CLIENT_URLS?.split(",") || [];
   const origins = urls || "*";
 
+  console.log(origins);
+
   app.use(cors({ origin: origins }));
 
   app.use(routes);

@@ -30,6 +30,7 @@ function main() {
         app.use(body_parser_1.default.urlencoded({ extended: true, limit: "50mb" }));
         const urls = (CLIENT_URLS === null || CLIENT_URLS === void 0 ? void 0 : CLIENT_URLS.split(",")) || [];
         const origins = urls || "*";
+        console.log(origins);
         app.use((0, cors_1.default)({ origin: origins }));
         app.use(routes_1.default);
         app.listen(PORT, () => {
