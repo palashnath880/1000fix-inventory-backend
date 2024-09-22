@@ -3,6 +3,8 @@ import cors from "cors";
 import routes from "./routes";
 import { PrismaClient } from "@prisma/client";
 import bodyParser from "body-parser";
+import dotenv from "dotenv";
+dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 const app = express();
