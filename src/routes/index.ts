@@ -10,6 +10,7 @@ import stockRouter from "./stock.route";
 import jobRouter from "./job.route";
 import enStockRouter from "./engineerStock.route";
 import { verifyAuthToken } from "../middlewares/verifyToken";
+import challanRouter from "./challan.route";
 
 const routes = Router();
 
@@ -40,7 +41,10 @@ routes.use("/stock", verifyAuthToken, stockRouter);
 // engineer stock route
 routes.use("/engineer-stock", verifyAuthToken, enStockRouter);
 
-// stock route
+// job route
 routes.use("/job", verifyAuthToken, jobRouter);
+
+// challan route
+routes.use("/challan", verifyAuthToken, challanRouter);
 
 export default routes;

@@ -4,6 +4,7 @@ import routes from "./routes";
 import { PrismaClient } from "@prisma/client";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import { hashPassword } from "./utils/user.utils";
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
@@ -18,8 +19,6 @@ async function main() {
 
   const urls: string[] = CLIENT_URLS?.split(",") || [];
   const origins = urls || "*";
-
-  console.log(origins);
 
   app.use(cors({ origin: origins }));
 
