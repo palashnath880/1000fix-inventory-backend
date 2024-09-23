@@ -57,30 +57,27 @@ const getById = async (req: Request<{ id: string }>, res: Response) => {
 
 // get by date range and challan no
 const getAll = async (
-  req: Request<
-    {},
-    {},
-    {},
-    { search: string; fromDate: string; toDate: string }
-  >,
+  req: Request<{}, {}, {}, { fromDate: string; toDate: string; page: string }>,
   res: Response
 ) => {
   try {
-    const search = req.query.search;
     const fromDate = req.query.fromDate;
     const toDate = req.query.toDate;
+    const page = parseInt(req.query.page) || 1;
+
     if (!fromDate || !toDate) {
       return res.send([]);
     }
 
     const result = await prisma.challan.findMany({
       where: {
-        AND: [
-          search ? { challanNo: search } : {},
-          { createdAt: { gte: new Date(fromDate), lte: new Date(toDate) } },
-        ],
+        createdAt: { gte: new Date(fromDate), lte: new Date(toDate) },
       },
+      skip: (page - 1) * 50,
+      take: 50,
+      include: { items: { include: { skuCode: true } } },
     });
+
     res.send(result);
   } catch (err) {
     res.status(400).send(err);
