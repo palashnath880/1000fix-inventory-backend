@@ -112,7 +112,8 @@ model SkuCode {
   stocks      Stock[]
   enStock     EngineerStock[]
   jobItems    JobItem[]
-  scrapItems StockItem[]
+  scrapItems  StockItem[]
+  challanItems ChallanItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
 }
@@ -193,4 +194,25 @@ model JobItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
 	@@map("JobItems")
+}
+
+model Challan{
+  id          String @id @default(uuid())
+  name        String
+  phone       String
+  address     String
+  description String?
+  items       ChallanItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+}
+
+model ChallanItem{
+  id          String @id @default(uuid())
+  skuCode     SkuCode @relation(fields: [skuCodeId],references: [id])
+  skuCodeId   String
+  quantity    Float
+  challan     Challan @relation(fields: [challanId], references: [id])
+  challanId   String
+  createdAt   DateTime @default(now())
 }
