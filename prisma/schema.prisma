@@ -198,6 +198,7 @@ model JobItem {
 
 model Challan{
   id          String @id @default(uuid())
+  challanNo   String @unique
   name        String
   phone       String
   address     String
