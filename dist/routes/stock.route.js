@@ -36,4 +36,6 @@ stockRouter.get(`/defective`, stock_controller_1.default.getDefective);
 stockRouter.post(`/defective-send`, stock_controller_1.default.sendDefective);
 // defective to scrap
 stockRouter.post(`/scrap`, stock_controller_1.default.moveToScrap);
+// faulty to good
+stockRouter.post(`/faulty-to-good`, stock_controller_1.default.moveToGood);
 exports.default = stockRouter;

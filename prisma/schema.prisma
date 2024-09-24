@@ -20,6 +20,7 @@ enum StockType {
   faulty
   defective
   scrap
+  fromFaulty
 }
 
 enum StockItemType {

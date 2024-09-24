@@ -116,41 +116,23 @@ const ownStock = async (
     const skuCode = req?.query?.skuCode;
 
     const stockArr: any[] = [];
+    const skuCodes = await prisma.skuCode.findMany({
+      where: skuCode
+        ? { id: skuCode }
+        : model
+        ? { item: { modelId: model } }
+        : category
+        ? { item: { model: { categoryId: category } } }
+        : {},
+      select: {
+        id: true,
+      },
+    });
 
-    if (skuCode) {
-      // get stocks by sku code
-      const stock = await branchStockBySkuId(branchId, skuCode);
-      stockArr.push(stock);
-    } else if (model) {
-      // get stocks by model
-      const getSkuCodes = await prisma.skuCode.findMany({
-        where: { item: { modelId: model } },
-        select: {
-          id: true,
-        },
-      });
-      for (const sku of getSkuCodes) {
-        const stock = await branchStockBySkuId(branchId, sku.id);
-        stockArr.push(stock);
-      }
-    } else if (category) {
-      // get stocks by model
-      const getSkuCodes = await prisma.skuCode.findMany({
-        where: { item: { model: { categoryId: category } } },
-        select: {
-          id: true,
-        },
-      });
-      for (const sku of getSkuCodes) {
-        const stock = await branchStockBySkuId(branchId, sku.id);
-        stockArr.push(stock);
-      }
-    } else {
-      // get stocks by model
-      const getSkuCodes = await prisma.skuCode.findMany({});
-      for (const sku of getSkuCodes) {
-        const stock = await branchStockBySkuId(branchId, sku.id);
-        stockArr.push(stock);
+    for (const skuId of skuCodes) {
+      const stock = await branchStockBySkuId(branchId, skuId.id);
+      if (stock.faulty || stock.quantity || stock.defective) {
+        stock && stockArr.push(stock);
       }
     }
 
@@ -558,6 +540,34 @@ const moveToScrap = async (
   }
 };
 
+// faulty to good stock
+const moveToGood = async (
+  req: Request<
+    {},
+    {},
+    {
+      skuCodeId: string;
+      quantity: number;
+      type: "fromFaulty";
+      senderId: string;
+    }
+  >,
+  res: Response
+) => {
+  try {
+    const data = req.body;
+    const branchId = req.cookies?.user?.branchId;
+
+    data.senderId = branchId;
+    data.type = "fromFaulty";
+
+    const result = await prisma.stock.create({ data });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   entry,
   transfer,
@@ -574,4 +584,5 @@ export default {
   getDefective,
   moveToScrap,
   sendDefective,
+  moveToGood,
 };

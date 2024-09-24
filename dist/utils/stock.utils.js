@@ -81,7 +81,7 @@ const getSellQuantity = (branchId, skuId) => __awaiter(void 0, void 0, void 0, f
 });
 // get branch defective
 const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d;
     try {
         let quantity = 0;
         // get generate defective quantity
@@ -119,15 +119,7 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
                 status: "received",
             },
         });
-        // defective from engineer faulty
-        const engineer = yield server_1.prisma.engineerStock.aggregate({
-            _sum: { quantity: true },
-            where: {
-                type: "faulty",
-                skuCode: { id: skuId, isDefective: true },
-                branchId: branchId,
-            },
-        });
+        // scrap quantity
         const scrap = yield server_1.prisma.stockItem.aggregate({
             _sum: { quantity: true },
             where: {
@@ -145,11 +137,8 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         // receive defective
         if ((_c = receive === null || receive === void 0 ? void 0 : receive._sum) === null || _c === void 0 ? void 0 : _c.quantity)
             quantity += receive._sum.quantity;
-        // engineer faulty
-        if ((_d = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _d === void 0 ? void 0 : _d.quantity)
-            quantity += engineer._sum.quantity;
         // scrap quantity
-        if ((_e = scrap === null || scrap === void 0 ? void 0 : scrap._sum) === null || _e === void 0 ? void 0 : _e.quantity)
+        if ((_d = scrap === null || scrap === void 0 ? void 0 : scrap._sum) === null || _d === void 0 ? void 0 : _d.quantity)
             quantity -= scrap._sum.quantity;
         return quantity;
     }
@@ -158,9 +147,39 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.getBranchDefective = getBranchDefective;
+// get branch faulty stock
+const getFaultyStock = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        // engineer faulty stock
+        const engineer = yield server_1.prisma.engineerStock.aggregate({
+            _sum: { quantity: true },
+            where: {
+                type: "faulty",
+                branchId: branchId,
+                status: "received",
+                skuCodeId: skuId,
+            },
+        });
+        // transfer to good
+        const transfer = yield server_1.prisma.stock.aggregate({
+            _sum: { quantity: true },
+            where: { type: "fromFaulty", senderId: branchId, skuCodeId: skuId },
+        });
+        let quantity = 0;
+        if ((_a = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _a === void 0 ? void 0 : _a.quantity)
+            quantity += engineer._sum.quantity;
+        if ((_b = transfer === null || transfer === void 0 ? void 0 : transfer._sum) === null || _b === void 0 ? void 0 : _b.quantity)
+            quantity -= transfer._sum.quantity;
+        return quantity;
+    }
+    catch (err) {
+        throw new Error(err);
+    }
+});
 // get branch stock by sku id
 const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
     try {
         const entry = yield server_1.prisma.stock.aggregate({
             _sum: { quantity: true },
@@ -193,10 +212,16 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
                 status: { in: ["open", "received"] },
             },
         });
+        const faultyGood = yield server_1.prisma.stock.aggregate({
+            _sum: { quantity: true },
+            where: { senderId: branchId, skuCodeId: skuId, type: "fromFaulty" },
+        });
+        // engineer transfer
         const engineer = yield server_1.prisma.engineerStock.aggregate({
             _sum: { quantity: true },
             where: { skuCodeId: skuId, type: "transfer", branchId: branchId },
         });
+        // engineer return
         const enReturn = yield server_1.prisma.engineerStock.aggregate({
             _sum: { quantity: true },
             where: { skuCodeId: skuId, type: "return", branchId: branchId },
@@ -205,30 +230,35 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         const avgPrice = yield getAvgPrice(skuId);
         const sellQuantity = yield getSellQuantity(branchId, skuId);
         const defective = yield getBranchDefective(branchId, skuId);
+        const faulty = yield getFaultyStock(branchId, skuId);
         const result = {
             skuCode,
             avgPrice,
             quantity: 0,
             defective,
+            faulty,
         };
         // entry quantity
         if ((_a = entry === null || entry === void 0 ? void 0 : entry._sum) === null || _a === void 0 ? void 0 : _a.quantity)
             result.quantity += entry._sum.quantity;
+        // faulty good quantity
+        if ((_b = faultyGood === null || faultyGood === void 0 ? void 0 : faultyGood._sum) === null || _b === void 0 ? void 0 : _b.quantity)
+            result.quantity += faultyGood._sum.quantity;
         // received quantity
-        if ((_b = received === null || received === void 0 ? void 0 : received._sum) === null || _b === void 0 ? void 0 : _b.quantity)
+        if ((_c = received === null || received === void 0 ? void 0 : received._sum) === null || _c === void 0 ? void 0 : _c.quantity)
             result.quantity += received._sum.quantity;
         // transfer quantity
-        if ((_c = transfer === null || transfer === void 0 ? void 0 : transfer._sum) === null || _c === void 0 ? void 0 : _c.quantity)
+        if ((_d = transfer === null || transfer === void 0 ? void 0 : transfer._sum) === null || _d === void 0 ? void 0 : _d.quantity)
             result.quantity -= transfer._sum.quantity;
         // faulty quantity
-        if ((_d = faultyReturn === null || faultyReturn === void 0 ? void 0 : faultyReturn._sum) === null || _d === void 0 ? void 0 : _d.quantity)
+        if ((_e = faultyReturn === null || faultyReturn === void 0 ? void 0 : faultyReturn._sum) === null || _e === void 0 ? void 0 : _e.quantity)
             result.quantity -= faultyReturn._sum.quantity;
         // engineer transfer quantity
-        if ((_e = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _e === void 0 ? void 0 : _e.quantity)
+        if ((_f = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _f === void 0 ? void 0 : _f.quantity)
             result.quantity -= engineer._sum.quantity;
         // engineer return good quantity
-        if ((_f = enReturn === null || enReturn === void 0 ? void 0 : enReturn._sum) === null || _f === void 0 ? void 0 : _f.quantity)
-            result.quantity -= enReturn._sum.quantity;
+        if ((_g = enReturn === null || enReturn === void 0 ? void 0 : enReturn._sum) === null || _g === void 0 ? void 0 : _g.quantity)
+            result.quantity += enReturn._sum.quantity;
         // minus sell quantity
         if (sellQuantity)
             result.quantity -= sellQuantity;

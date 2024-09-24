@@ -89,43 +89,22 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const model = (_d = req === null || req === void 0 ? void 0 : req.query) === null || _d === void 0 ? void 0 : _d.model;
         const skuCode = (_e = req === null || req === void 0 ? void 0 : req.query) === null || _e === void 0 ? void 0 : _e.skuCode;
         const stockArr = [];
-        if (skuCode) {
-            // get stocks by sku code
-            const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, skuCode);
-            stockArr.push(stock);
-        }
-        else if (model) {
-            // get stocks by model
-            const getSkuCodes = yield server_1.prisma.skuCode.findMany({
-                where: { item: { modelId: model } },
-                select: {
-                    id: true,
-                },
-            });
-            for (const sku of getSkuCodes) {
-                const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, sku.id);
-                stockArr.push(stock);
-            }
-        }
-        else if (category) {
-            // get stocks by model
-            const getSkuCodes = yield server_1.prisma.skuCode.findMany({
-                where: { item: { model: { categoryId: category } } },
-                select: {
-                    id: true,
-                },
-            });
-            for (const sku of getSkuCodes) {
-                const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, sku.id);
-                stockArr.push(stock);
-            }
-        }
-        else {
-            // get stocks by model
-            const getSkuCodes = yield server_1.prisma.skuCode.findMany({});
-            for (const sku of getSkuCodes) {
-                const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, sku.id);
-                stockArr.push(stock);
+        const skuCodes = yield server_1.prisma.skuCode.findMany({
+            where: skuCode
+                ? { id: skuCode }
+                : model
+                    ? { item: { modelId: model } }
+                    : category
+                        ? { item: { model: { categoryId: category } } }
+                        : {},
+            select: {
+                id: true,
+            },
+        });
+        for (const skuId of skuCodes) {
+            const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, skuId.id);
+            if (stock.faulty || stock.quantity || stock.defective) {
+                stock && stockArr.push(stock);
             }
         }
         res.send(stockArr);
@@ -460,6 +439,21 @@ const moveToScrap = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         res.status(400).send(err);
     }
 });
+// faulty to good stock
+const moveToGood = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const data = req.body;
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        data.senderId = branchId;
+        data.type = "fromFaulty";
+        const result = yield server_1.prisma.stock.create({ data });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 exports.default = {
     entry,
     transfer,
@@ -476,4 +470,5 @@ exports.default = {
     getDefective,
     moveToScrap,
     sendDefective,
+    moveToGood,
 };
