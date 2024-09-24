@@ -79,43 +79,22 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const model = (_d = req === null || req === void 0 ? void 0 : req.query) === null || _d === void 0 ? void 0 : _d.model;
         const skuCode = (_e = req === null || req === void 0 ? void 0 : req.query) === null || _e === void 0 ? void 0 : _e.skuId;
         const stockArr = [];
-        if (skuCode) {
-            // get stocks by sku code
-            const stock = yield (0, stock_utils_1.engineerStockBySkuId)(userId, skuCode);
-            stockArr.push(stock);
-        }
-        else if (model) {
-            // get stocks by model
-            const getSkuCodes = yield server_1.prisma.skuCode.findMany({
-                where: { item: { modelId: model } },
-                select: {
-                    id: true,
-                },
-            });
-            for (const sku of getSkuCodes) {
-                const stock = yield (0, stock_utils_1.engineerStockBySkuId)(userId, sku.id);
-                stockArr.push(stock);
-            }
-        }
-        else if (category) {
-            // get stocks by model
-            const getSkuCodes = yield server_1.prisma.skuCode.findMany({
-                where: { item: { model: { categoryId: category } } },
-                select: {
-                    id: true,
-                },
-            });
-            for (const sku of getSkuCodes) {
-                const stock = yield (0, stock_utils_1.engineerStockBySkuId)(userId, sku.id);
-                stockArr.push(stock);
-            }
-        }
-        else {
-            // get stocks by model
-            const getSkuCodes = yield server_1.prisma.skuCode.findMany({});
-            for (const sku of getSkuCodes) {
-                const stock = yield (0, stock_utils_1.engineerStockBySkuId)(userId, sku.id);
-                stockArr.push(stock);
+        const skuCodes = yield server_1.prisma.skuCode.findMany({
+            where: skuCode
+                ? { id: skuCode }
+                : model
+                    ? { item: { modelId: model } }
+                    : category
+                        ? { item: { model: { categoryId: category } } }
+                        : {},
+            select: {
+                id: true,
+            },
+        });
+        for (const skuId of skuCodes) {
+            const stock = yield (0, stock_utils_1.engineerStockBySkuId)(userId, skuId.id);
+            if (stock.quantity) {
+                stock && stockArr.push(stock);
             }
         }
         res.send(stockArr);

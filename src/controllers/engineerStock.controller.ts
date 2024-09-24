@@ -97,40 +97,23 @@ const ownStock = async (
 
     const stockArr: any[] = [];
 
-    if (skuCode) {
-      // get stocks by sku code
-      const stock = await engineerStockBySkuId(userId, skuCode);
-      stockArr.push(stock);
-    } else if (model) {
-      // get stocks by model
-      const getSkuCodes = await prisma.skuCode.findMany({
-        where: { item: { modelId: model } },
-        select: {
-          id: true,
-        },
-      });
-      for (const sku of getSkuCodes) {
-        const stock = await engineerStockBySkuId(userId, sku.id);
-        stockArr.push(stock);
-      }
-    } else if (category) {
-      // get stocks by model
-      const getSkuCodes = await prisma.skuCode.findMany({
-        where: { item: { model: { categoryId: category } } },
-        select: {
-          id: true,
-        },
-      });
-      for (const sku of getSkuCodes) {
-        const stock = await engineerStockBySkuId(userId, sku.id);
-        stockArr.push(stock);
-      }
-    } else {
-      // get stocks by model
-      const getSkuCodes = await prisma.skuCode.findMany({});
-      for (const sku of getSkuCodes) {
-        const stock = await engineerStockBySkuId(userId, sku.id);
-        stockArr.push(stock);
+    const skuCodes = await prisma.skuCode.findMany({
+      where: skuCode
+        ? { id: skuCode }
+        : model
+        ? { item: { modelId: model } }
+        : category
+        ? { item: { model: { categoryId: category } } }
+        : {},
+      select: {
+        id: true,
+      },
+    });
+
+    for (const skuId of skuCodes) {
+      const stock = await engineerStockBySkuId(userId, skuId.id);
+      if (stock.quantity) {
+        stock && stockArr.push(stock);
       }
     }
 
