@@ -66,7 +66,17 @@ const getAll = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
             skip: (page - 1) * 50,
             take: 50,
-            include: { items: { include: { skuCode: true } } },
+            include: {
+                items: {
+                    include: {
+                        skuCode: {
+                            include: {
+                                item: { include: { model: { include: { category: true } } } },
+                            },
+                        },
+                    },
+                },
+            },
         });
         res.send(result);
     }
