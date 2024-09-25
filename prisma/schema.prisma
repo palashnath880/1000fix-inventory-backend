@@ -21,6 +21,7 @@ enum StockType {
   defective
   scrap
   fromFaulty
+  purchaseReturn
 }
 
 enum StockItemType {
