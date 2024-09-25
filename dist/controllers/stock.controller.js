@@ -454,6 +454,54 @@ const moveToGood = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(400).send(err);
     }
 });
+// purchase return
+const purchaseReturn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const list = req.body.list;
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
+        const data = list.map((i) => (Object.assign(Object.assign({}, i), { senderId: branchId, type: "purchaseReturn" })));
+        const result = yield server_1.prisma.stock.createMany({
+            data,
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// purchase return list
+const purchaseReturnList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
+        const fromDate = req.query.fromDate ? new Date(req.query.fromDate) : "";
+        const toDate = req.query.toDate ? new Date(req.query.toDate) : "";
+        if (!fromDate || !toDate)
+            return res.send([]);
+        const result = yield server_1.prisma.stock.findMany({
+            where: {
+                senderId: branchId,
+                type: "purchaseReturn",
+                createdAt: {
+                    gte: fromDate,
+                    lte: toDate,
+                },
+            },
+            include: {
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 exports.default = {
     entry,
     transfer,
@@ -471,4 +519,6 @@ exports.default = {
     moveToScrap,
     sendDefective,
     moveToGood,
+    purchaseReturn,
+    purchaseReturnList,
 };

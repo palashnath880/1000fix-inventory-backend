@@ -21,6 +21,14 @@ type Stock = {
   note: string;
 };
 
+type PurchaseReturn = {
+  senderId: string;
+  type: "purchaseReturn";
+  note: string;
+  skuCodeId: string;
+  quantity: number;
+};
+
 // stock entry
 const entry = async (
   req: Request<{}, {}, { list: Stock[] }>,
@@ -568,6 +576,73 @@ const moveToGood = async (
   }
 };
 
+// purchase return
+const purchaseReturn = async (
+  req: Request<
+    {},
+    {},
+    {
+      list: PurchaseReturn[];
+    }
+  >,
+  res: Response
+) => {
+  try {
+    const list = req.body.list;
+    const branchId: string = req.cookies?.user?.id;
+
+    const data: any = list.map((i) => ({
+      ...i,
+      senderId: branchId,
+      type: "purchaseReturn",
+    }));
+
+    const result = await prisma.stock.createMany({
+      data,
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// purchase return list
+const purchaseReturnList = async (
+  req: Request<{}, {}, {}, { fromDate: string; toDate: string }>,
+  res: Response
+) => {
+  try {
+    const branchId = req.cookies?.user?.id;
+    const fromDate = req.query.fromDate ? new Date(req.query.fromDate) : "";
+    const toDate = req.query.toDate ? new Date(req.query.toDate) : "";
+
+    if (!fromDate || !toDate) return res.send([]);
+
+    const result = await prisma.stock.findMany({
+      where: {
+        senderId: branchId,
+        type: "purchaseReturn",
+        createdAt: {
+          gte: fromDate,
+          lte: toDate,
+        },
+      },
+      include: {
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   entry,
   transfer,
@@ -585,4 +660,6 @@ export default {
   moveToScrap,
   sendDefective,
   moveToGood,
+  purchaseReturn,
+  purchaseReturnList,
 };

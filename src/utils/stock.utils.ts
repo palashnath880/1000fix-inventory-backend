@@ -217,6 +217,12 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
       where: { senderId: branchId, skuCodeId: skuId, type: "fromFaulty" },
     });
 
+    // purchase return
+    const puReturn = await prisma.stock.aggregate({
+      _sum: { quantity: true },
+      where: { type: "purchaseReturn", senderId: branchId, skuCodeId: skuId },
+    });
+
     // engineer transfer
     const engineer = await prisma.engineerStock.aggregate({
       _sum: { quantity: true },
@@ -264,6 +270,9 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
     // faulty quantity
     if (faultyReturn?._sum?.quantity)
       result.quantity -= faultyReturn._sum.quantity;
+
+    // purchase return
+    if (puReturn?._sum?.quantity) result.quantity -= puReturn._sum.quantity;
 
     // engineer transfer quantity
     if (engineer?._sum?.quantity) result.quantity -= engineer._sum.quantity;

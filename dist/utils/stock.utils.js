@@ -179,7 +179,7 @@ const getFaultyStock = (branchId, skuId) => __awaiter(void 0, void 0, void 0, fu
 });
 // get branch stock by sku id
 const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     try {
         const entry = yield server_1.prisma.stock.aggregate({
             _sum: { quantity: true },
@@ -215,6 +215,11 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         const faultyGood = yield server_1.prisma.stock.aggregate({
             _sum: { quantity: true },
             where: { senderId: branchId, skuCodeId: skuId, type: "fromFaulty" },
+        });
+        // purchase return
+        const puReturn = yield server_1.prisma.stock.aggregate({
+            _sum: { quantity: true },
+            where: { type: "purchaseReturn", senderId: branchId, skuCodeId: skuId },
         });
         // engineer transfer
         const engineer = yield server_1.prisma.engineerStock.aggregate({
@@ -253,11 +258,14 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         // faulty quantity
         if ((_e = faultyReturn === null || faultyReturn === void 0 ? void 0 : faultyReturn._sum) === null || _e === void 0 ? void 0 : _e.quantity)
             result.quantity -= faultyReturn._sum.quantity;
+        // purchase return
+        if ((_f = puReturn === null || puReturn === void 0 ? void 0 : puReturn._sum) === null || _f === void 0 ? void 0 : _f.quantity)
+            result.quantity -= puReturn._sum.quantity;
         // engineer transfer quantity
-        if ((_f = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _f === void 0 ? void 0 : _f.quantity)
+        if ((_g = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _g === void 0 ? void 0 : _g.quantity)
             result.quantity -= engineer._sum.quantity;
         // engineer return good quantity
-        if ((_g = enReturn === null || enReturn === void 0 ? void 0 : enReturn._sum) === null || _g === void 0 ? void 0 : _g.quantity)
+        if ((_h = enReturn === null || enReturn === void 0 ? void 0 : enReturn._sum) === null || _h === void 0 ? void 0 : _h.quantity)
             result.quantity += enReturn._sum.quantity;
         // minus sell quantity
         if (sellQuantity)

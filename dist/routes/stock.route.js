@@ -38,4 +38,8 @@ stockRouter.post(`/defective-send`, stock_controller_1.default.sendDefective);
 stockRouter.post(`/scrap`, stock_controller_1.default.moveToScrap);
 // faulty to good
 stockRouter.post(`/faulty-to-good`, stock_controller_1.default.moveToGood);
+// purchase return
+stockRouter.post(`/purchase-return`, stock_controller_1.default.purchaseReturn);
+// purchase return list
+stockRouter.get(`/purchase-return`, stock_controller_1.default.purchaseReturnList);
 exports.default = stockRouter;

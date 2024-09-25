@@ -54,4 +54,10 @@ stockRouter.post(`/scrap`, stockController.moveToScrap);
 // faulty to good
 stockRouter.post(`/faulty-to-good`, stockController.moveToGood);
 
+// purchase return
+stockRouter.post(`/purchase-return`, stockController.purchaseReturn);
+
+// purchase return list
+stockRouter.get(`/purchase-return`, stockController.purchaseReturnList);
+
 export default stockRouter;
