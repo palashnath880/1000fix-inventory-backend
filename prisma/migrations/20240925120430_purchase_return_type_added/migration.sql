@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `stock` MODIFY `type` ENUM('entry', 'transfer', 'faulty', 'defective', 'scrap', 'fromFaulty', 'purchaseReturn') NOT NULL DEFAULT 'entry';
+ALTER TABLE `Stock` MODIFY `type` ENUM('entry', 'transfer', 'faulty', 'defective', 'scrap', 'fromFaulty', 'purchaseReturn') NOT NULL DEFAULT 'entry';
