@@ -302,6 +302,51 @@ const stockBySkuId = async (
   }
 };
 
+// get stock by engineer
+const getByEngineer = async (
+  req: Request<
+    { id: string },
+    {},
+    {},
+    { category: string; model: string; sku: string }
+  >,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const model = req.query.model;
+    const category = req.query.category;
+    const sku = req.query.sku;
+
+    const stockArr: any[] = [];
+    const skuCodes = await prisma.skuCode.findMany({
+      where: sku
+        ? { id: sku }
+        : model
+        ? { item: { modelId: model } }
+        : category
+        ? { item: { model: { categoryId: category } } }
+        : {},
+      select: {
+        id: true,
+      },
+    });
+
+    const engineer = await prisma.user.findUnique({ where: { id } });
+
+    for (const skuCode of skuCodes) {
+      const stock = await engineerStockBySkuId(id, skuCode.id);
+      if (stock.quantity > 0) {
+        stockArr.push({ ...stock, engineer });
+      }
+    }
+
+    res.send(stockArr);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   transfer,
   receive,
@@ -313,4 +358,5 @@ export default {
   stockReport,
   stockReturn,
   stockByBranch,
+  getByEngineer,
 };

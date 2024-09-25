@@ -33,4 +33,7 @@ engineerStockRouter.get(`/receive-report/:userId`, controller.stockReport);
 // status update
 engineerStockRouter.put(`/:stockId`, controller.update);
 
+// get by engineer id
+engineerStockRouter.get(`/:id`, controller.getByEngineer);
+
 export default engineerStockRouter;

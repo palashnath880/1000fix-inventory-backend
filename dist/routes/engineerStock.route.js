@@ -26,4 +26,6 @@ engineerStockRouter.get(`/receive`, engineerStock_controller_1.default.receive);
 engineerStockRouter.get(`/receive-report/:userId`, engineerStock_controller_1.default.stockReport);
 // status update
 engineerStockRouter.put(`/:stockId`, engineerStock_controller_1.default.update);
+// get by engineer id
+engineerStockRouter.get(`/:id`, engineerStock_controller_1.default.getByEngineer);
 exports.default = engineerStockRouter;
