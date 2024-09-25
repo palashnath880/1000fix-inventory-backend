@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
+import moment from "moment-timezone";
 
 type JobItem = {
   price: number;
@@ -45,23 +46,47 @@ const create = async (req: Request<{}, {}, JobType>, res: Response) => {
 };
 
 const jobList = async (
-  req: Request<{ id: string }, {}, {}, { fromDate: string; toDate: string }>,
+  req: Request<
+    { id: string },
+    {},
+    {},
+    {
+      fromDate: string;
+      toDate: string;
+      filter: "" | "engineer" | "branch";
+      engineers: string[];
+    }
+  >,
   res: Response
 ) => {
   try {
-    const id = req.cookies?.user?.branchId;
+    const branchId = req.cookies?.user?.branchId;
+    const filter = req.query.filter;
+    let engineers = req.query.engineers || [];
+    if (typeof engineers === "string") engineers = [engineers];
 
-    const fromDate = req.query.fromDate ? new Date(req.query.fromDate) : "";
-    const toDate = req.query.toDate ? new Date(req.query.toDate) : "";
+    let fromDate: any = req.query.fromDate;
 
-    if (!fromDate || !toDate) {
-      return res.send([]);
-    }
+    fromDate = fromDate
+      ? new Date(fromDate)
+      : new Date(moment().tz("Asia/Dhaka").format("YYYY-MM-DD"));
 
-    // get list
+    let toDate: any = req.query.toDate;
+    toDate = toDate
+      ? new Date(moment(toDate).add(1, "days").format("YYYY-MM-DD"))
+      : new Date(moment.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
+
+    let search = {};
+    if (filter === "branch") search = { branchId: branchId, engineerId: null };
+    if (filter === "engineer") search = { engineerId: { in: engineers } };
+    if (filter === "engineer" && engineers.length <= 0)
+      search = { branchId, engineerId: { not: null } };
+    if (!filter) search = { branchId };
+
+    // get job entry list
     const result = await prisma.job.findMany({
       where: {
-        branchId: id,
+        AND: [search],
         createdAt: {
           gte: fromDate,
           lte: toDate,
@@ -80,6 +105,7 @@ const jobList = async (
 
     res.send(result);
   } catch (err) {
+    console.log(err);
     res.status(400).send(err);
   }
 };

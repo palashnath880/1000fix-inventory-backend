@@ -8,8 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = require("../server");
+const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
@@ -38,16 +42,32 @@ const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 const jobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const id = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
-        const fromDate = req.query.fromDate ? new Date(req.query.fromDate) : "";
-        const toDate = req.query.toDate ? new Date(req.query.toDate) : "";
-        if (!fromDate || !toDate) {
-            return res.send([]);
-        }
-        // get list
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const filter = req.query.filter;
+        let engineers = req.query.engineers || [];
+        if (typeof engineers === "string")
+            engineers = [engineers];
+        let fromDate = req.query.fromDate;
+        fromDate = fromDate
+            ? new Date(fromDate)
+            : new Date((0, moment_timezone_1.default)().tz("Asia/Dhaka").format("YYYY-MM-DD"));
+        let toDate = req.query.toDate;
+        toDate = toDate
+            ? new Date((0, moment_timezone_1.default)(toDate).add(1, "days").format("YYYY-MM-DD"))
+            : new Date(moment_timezone_1.default.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
+        let search = {};
+        if (filter === "branch")
+            search = { branchId: branchId, engineerId: null };
+        if (filter === "engineer")
+            search = { engineerId: { in: engineers } };
+        if (filter === "engineer" && engineers.length <= 0)
+            search = { branchId, engineerId: { not: null } };
+        if (!filter)
+            search = { branchId };
+        // get job entry list
         const result = yield server_1.prisma.job.findMany({
             where: {
-                branchId: id,
+                AND: [search],
                 createdAt: {
                     gte: fromDate,
                     lte: toDate,
@@ -66,6 +86,7 @@ const jobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.send(result);
     }
     catch (err) {
+        console.log(err);
         res.status(400).send(err);
     }
 });

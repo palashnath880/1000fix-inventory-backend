@@ -151,6 +151,58 @@ const ownStock = async (
   }
 };
 
+// branch stock
+const branchStock = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      category: string;
+      model: string;
+      skuCode: string;
+      branch: string;
+    }
+  >,
+  res: Response
+) => {
+  try {
+    const branchId = req?.query?.branch;
+    const category = req?.query?.category;
+    const model = req?.query?.model;
+    const skuCode = req?.query?.skuCode;
+
+    const stockArr: any[] = [];
+
+    const branch = await prisma.branch.findUnique({ where: { id: branchId } });
+
+    const skuCodes = await prisma.skuCode.findMany({
+      where: skuCode
+        ? { id: skuCode }
+        : model
+        ? { item: { modelId: model } }
+        : category
+        ? { item: { model: { categoryId: category } } }
+        : {},
+      select: {
+        id: true,
+      },
+    });
+
+    for (const skuId of skuCodes) {
+      const stock = await branchStockBySkuId(branchId, skuId.id);
+      if (stock.faulty || stock.quantity || stock.defective) {
+        stock && stockArr.push({ ...stock, branch });
+      }
+    }
+
+    res.send(stockArr);
+  } catch (err) {
+    console.log(err);
+    res.status(400).send(err);
+  }
+};
+
 // own stock by sku id
 const ownStockBySkuId = async (
   req: Request<{}, {}, {}, { skuCodeId: string }>,
@@ -662,4 +714,5 @@ export default {
   moveToGood,
   purchaseReturn,
   purchaseReturnList,
+  branchStock,
 };

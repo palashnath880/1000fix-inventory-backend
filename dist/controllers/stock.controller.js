@@ -114,6 +114,41 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
+// branch stock
+const branchStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    try {
+        const branchId = (_a = req === null || req === void 0 ? void 0 : req.query) === null || _a === void 0 ? void 0 : _a.branch;
+        const category = (_b = req === null || req === void 0 ? void 0 : req.query) === null || _b === void 0 ? void 0 : _b.category;
+        const model = (_c = req === null || req === void 0 ? void 0 : req.query) === null || _c === void 0 ? void 0 : _c.model;
+        const skuCode = (_d = req === null || req === void 0 ? void 0 : req.query) === null || _d === void 0 ? void 0 : _d.skuCode;
+        const stockArr = [];
+        const branch = yield server_1.prisma.branch.findUnique({ where: { id: branchId } });
+        const skuCodes = yield server_1.prisma.skuCode.findMany({
+            where: skuCode
+                ? { id: skuCode }
+                : model
+                    ? { item: { modelId: model } }
+                    : category
+                        ? { item: { model: { categoryId: category } } }
+                        : {},
+            select: {
+                id: true,
+            },
+        });
+        for (const skuId of skuCodes) {
+            const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, skuId.id);
+            if (stock.faulty || stock.quantity || stock.defective) {
+                stock && stockArr.push(Object.assign(Object.assign({}, stock), { branch }));
+            }
+        }
+        res.send(stockArr);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(400).send(err);
+    }
+});
 // own stock by sku id
 const ownStockBySkuId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -521,4 +556,5 @@ exports.default = {
     moveToGood,
     purchaseReturn,
     purchaseReturnList,
+    branchStock,
 };
