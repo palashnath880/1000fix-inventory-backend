@@ -19,9 +19,7 @@ enum StockType {
   transfer
   faulty
   defective
-  scrap
   fromFaulty
-  faultyScrap
   purchaseReturn
 }
 
@@ -115,8 +113,9 @@ model SkuCode {
   stocks      Stock[]
   enStock     EngineerStock[]
   jobItems    JobItem[]
-  scrapItems  StockItem[]
+  stockItems  StockItem[]
   challanItems ChallanItem[]
+  scrapItems  ScrapItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
 }
@@ -218,5 +217,24 @@ model ChallanItem{
   quantity    Float
   challan     Challan @relation(fields: [challanId], references: [id])
   challanId   String
+  createdAt   DateTime @default(now())
+}
+
+model Scrap {
+  id          String @id @default(uuid())
+  challanNo   String @unique
+  note        String?
+  items       ScrapItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+}
+
+model ScrapItem{
+  id          String @id @default(uuid())
+  skuCode     SkuCode @relation(fields: [skuCodeId],references: [id])
+  skuCodeId   String
+  quantity    Float
+  scrap       Scrap @relation(fields: [scrapId], references: [id])
+  scrapId     String
   createdAt   DateTime @default(now())
 }
