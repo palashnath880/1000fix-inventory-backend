@@ -57,6 +57,7 @@ model Branch {
   sender     Stock[] @relation("sender")
   users      User[] 
   job        Job[]
+  scrap      Scrap[]
   enStocks   EngineerStock[]
 }
 
@@ -230,6 +231,8 @@ model Scrap {
   from        ScrapFrom @default(faulty)
   challanNo   String @unique
   note        String?
+  branch      Branch @relation(fields: [branchId], references: [id])
+  branchId    String
   items       ScrapItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
