@@ -564,42 +564,6 @@ const sendDefective = async (
   }
 };
 
-// defective to scrap
-const moveToScrap = async (
-  req: Request<
-    {},
-    {},
-    {
-      list: {
-        skuCodeId: string;
-        quantity: number;
-        type: "defective" | "scrap";
-      }[];
-    }
-  >,
-  res: Response
-) => {
-  try {
-    const branchId = req.cookies?.user?.branchId;
-    let data = req.body.list;
-    const challan: string = `SC-${generateChallan()}`;
-
-    data = data.map((i) => ({ ...i, type: "scrap" }));
-
-    const result = await prisma.stock.create({
-      data: {
-        type: "scrap",
-        senderId: branchId,
-        challan: challan,
-        items: { create: data },
-      },
-    });
-    res.send(result);
-  } catch (err) {
-    res.status(400).send(err);
-  }
-};
-
 // faulty to good stock
 const moveToGood = async (
   req: Request<
@@ -709,7 +673,6 @@ export default {
   returnStock,
   engineerStockBySku,
   getDefective,
-  moveToScrap,
   sendDefective,
   moveToGood,
   purchaseReturn,
