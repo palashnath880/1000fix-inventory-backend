@@ -220,8 +220,14 @@ model ChallanItem{
   createdAt   DateTime @default(now())
 }
 
+enum ScrapFrom {
+  faulty
+  defective
+}
+
 model Scrap {
   id          String @id @default(uuid())
+  from        ScrapFrom @default(faulty)
   challanNo   String @unique
   note        String?
   items       ScrapItem[]
