@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `Scrap` ADD COLUMN `branchId` VARCHAR(191) NOT NULL;
+-- ALTER TABLE `Scrap` ADD COLUMN `branchId` VARCHAR(191) NOT NULL;
 
 -- AddForeignKey
-ALTER TABLE `Scrap` ADD CONSTRAINT `Scrap_branchId_fkey` FOREIGN KEY (`branchId`) REFERENCES `Branch`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+-- ALTER TABLE `Scrap` ADD CONSTRAINT `Scrap_branchId_fkey` FOREIGN KEY (`branchId`) REFERENCES `Branch`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
