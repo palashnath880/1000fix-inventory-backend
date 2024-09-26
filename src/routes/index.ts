@@ -11,6 +11,7 @@ import jobRouter from "./job.route";
 import enStockRouter from "./engineerStock.route";
 import { verifyAuthToken } from "../middlewares/verifyToken";
 import challanRouter from "./challan.route";
+import reportRouter from "./report.route";
 
 const routes = Router();
 
@@ -46,5 +47,8 @@ routes.use("/job", verifyAuthToken, jobRouter);
 
 // challan route
 routes.use("/challan", verifyAuthToken, challanRouter);
+
+// report
+routes.use("/report", verifyAuthToken, reportRouter);
 
 export default routes;

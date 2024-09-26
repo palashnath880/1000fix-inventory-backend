@@ -39,4 +39,6 @@ routes.use("/engineer-stock", verifyToken_1.verifyAuthToken, engineerStock_route
 routes.use("/job", verifyToken_1.verifyAuthToken, job_route_1.default);
 // challan route
 routes.use("/challan", verifyToken_1.verifyAuthToken, challan_route_1.default);
+// report
+routes.use("/report", verifyToken_1.verifyAuthToken, challan_route_1.default);
 exports.default = routes;
