@@ -26,6 +26,57 @@ const transfer = async (req: Request, res: Response) => {
   }
 };
 
+// branch transfer report
+const brTrReport = async (
+  req: Request<
+    {},
+    {},
+    {},
+    { fromDate: string; toDate: string; userId: string }
+  >,
+  res: Response
+) => {
+  try {
+    const role = req.cookies?.user?.role;
+    const branchId = req.cookies?.user?.branchId;
+    const engineerId = req.query.userId;
+    let fromDate: any = req.query.fromDate;
+    fromDate = fromDate ? new Date(fromDate) : new Date();
+    let toDate: any = req.query.toDate;
+    toDate = toDate
+      ? new Date(toDate)
+      : new Date(moment.tz("Asia/Dhaka").format("YYYY-MM-DD"));
+
+    const result = await prisma.engineerStock.findMany({
+      where: {
+        AND: [
+          engineerId ? { engineerId } : {},
+          {
+            createdAt: {
+              gte: fromDate,
+              lte: toDate,
+            },
+          },
+          role === "admin" ? {} : { branchId },
+        ],
+      },
+      include: {
+        engineer: true,
+        branch: true,
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 // receive stock list
 const receive = async (req: Request, res: Response) => {
   try {
@@ -359,4 +410,5 @@ export default {
   stockReturn,
   stockByBranch,
   getByEngineer,
+  brTrReport,
 };

@@ -29,6 +29,48 @@ const transfer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
+// branch transfer report
+const brTrReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    try {
+        const role = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.role;
+        const branchId = (_d = (_c = req.cookies) === null || _c === void 0 ? void 0 : _c.user) === null || _d === void 0 ? void 0 : _d.branchId;
+        const engineerId = req.query.userId;
+        let fromDate = req.query.fromDate;
+        fromDate = fromDate ? new Date(fromDate) : new Date();
+        let toDate = req.query.toDate;
+        toDate = toDate
+            ? new Date(toDate)
+            : new Date(moment_timezone_1.default.tz("Asia/Dhaka").format("YYYY-MM-DD"));
+        const result = yield server_1.prisma.engineerStock.findMany({
+            where: {
+                AND: [
+                    engineerId ? { engineerId } : {},
+                    {
+                        createdAt: {
+                            gte: fromDate,
+                            lte: toDate,
+                        },
+                    },
+                    role === "admin" ? {} : { branchId },
+                ],
+            },
+            include: {
+                engineer: true,
+                branch: true,
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 // receive stock list
 const receive = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -281,4 +323,5 @@ exports.default = {
     stockReturn,
     stockByBranch,
     getByEngineer,
+    brTrReport,
 };

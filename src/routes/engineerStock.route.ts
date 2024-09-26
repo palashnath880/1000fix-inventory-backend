@@ -12,6 +12,9 @@ engineerStockRouter.get(`/get-by-sku/:userId/:skuId`, controller.stockBySkuId);
 // transfer to engineer
 engineerStockRouter.post(`/transfer`, controller.transfer);
 
+// transfer report
+engineerStockRouter.get(`/transfer`, controller.brTrReport);
+
 // stock return
 engineerStockRouter.post(`/return`, controller.stockReturn);
 
