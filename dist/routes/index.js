@@ -16,6 +16,7 @@ const job_route_1 = __importDefault(require("./job.route"));
 const engineerStock_route_1 = __importDefault(require("./engineerStock.route"));
 const verifyToken_1 = require("../middlewares/verifyToken");
 const challan_route_1 = __importDefault(require("./challan.route"));
+const report_route_1 = __importDefault(require("./report.route"));
 const routes = (0, express_1.Router)();
 // auth route
 routes.use("/auth", auth_route_1.default);
@@ -40,5 +41,5 @@ routes.use("/job", verifyToken_1.verifyAuthToken, job_route_1.default);
 // challan route
 routes.use("/challan", verifyToken_1.verifyAuthToken, challan_route_1.default);
 // report
-routes.use("/report", verifyToken_1.verifyAuthToken, challan_route_1.default);
+routes.use("/report", verifyToken_1.verifyAuthToken, report_route_1.default);
 exports.default = routes;

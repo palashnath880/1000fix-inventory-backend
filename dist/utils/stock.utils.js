@@ -44,15 +44,18 @@ const getSku = (skuId) => __awaiter(void 0, void 0, void 0, function* () {
             select: {
                 name: true,
                 isDefective: true,
+                id: true,
                 item: {
                     select: {
                         name: true,
                         uom: true,
+                        id: true,
                         model: {
                             select: {
                                 name: true,
+                                id: true,
                                 category: {
-                                    select: { name: true },
+                                    select: { name: true, id: true },
                                 },
                             },
                         },
@@ -212,6 +215,7 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
                 status: { in: ["open", "received"] },
             },
         });
+        // from faulty
         const faultyGood = yield server_1.prisma.stock.aggregate({
             _sum: { quantity: true },
             where: { senderId: branchId, skuCodeId: skuId, type: "fromFaulty" },

@@ -38,15 +38,18 @@ const getSku = async (skuId: string) => {
       select: {
         name: true,
         isDefective: true,
+        id: true,
         item: {
           select: {
             name: true,
             uom: true,
+            id: true,
             model: {
               select: {
                 name: true,
+                id: true,
                 category: {
-                  select: { name: true },
+                  select: { name: true, id: true },
                 },
               },
             },
@@ -212,6 +215,7 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
       },
     });
 
+    // from faulty
     const faultyGood = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: { senderId: branchId, skuCodeId: skuId, type: "fromFaulty" },
