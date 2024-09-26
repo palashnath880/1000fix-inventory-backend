@@ -15,12 +15,16 @@ const scrap = async (
       ? new Date(toDate)
       : new Date(moment.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
 
-    const result = await prisma.stock.findMany({
-      where: { type: "scrap", createdAt: { gte: fromDate, lte: toDate } },
+    const result = await prisma.scrap.findMany({
+      where: { createdAt: { gte: fromDate, lte: toDate } },
       include: {
-        skuCode: {
+        items: {
           include: {
-            item: { include: { model: { include: { category: true } } } },
+            skuCode: {
+              include: {
+                item: { include: { model: { include: { category: true } } } },
+              },
+            },
           },
         },
       },
