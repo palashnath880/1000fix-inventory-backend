@@ -12,6 +12,7 @@ import enStockRouter from "./engineerStock.route";
 import { verifyAuthToken } from "../middlewares/verifyToken";
 import challanRouter from "./challan.route";
 import reportRouter from "./report.route";
+import scrapRouter from "./scrap.route";
 
 const routes = Router();
 
@@ -50,5 +51,8 @@ routes.use("/challan", verifyAuthToken, challanRouter);
 
 // report
 routes.use("/report", verifyAuthToken, reportRouter);
+
+// scrap
+routes.use("/scrap", verifyAuthToken, scrapRouter);
 
 export default routes;

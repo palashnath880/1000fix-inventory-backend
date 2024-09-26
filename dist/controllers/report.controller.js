@@ -23,12 +23,16 @@ const scrap = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         toDate = toDate
             ? new Date(toDate)
             : new Date(moment_timezone_1.default.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
-        const result = yield server_1.prisma.stock.findMany({
-            where: { type: "scrap", createdAt: { gte: fromDate, lte: toDate } },
+        const result = yield server_1.prisma.scrap.findMany({
+            where: { createdAt: { gte: fromDate, lte: toDate } },
             include: {
-                skuCode: {
+                items: {
                     include: {
-                        item: { include: { model: { include: { category: true } } } },
+                        skuCode: {
+                            include: {
+                                item: { include: { model: { include: { category: true } } } },
+                            },
+                        },
                     },
                 },
             },
