@@ -159,6 +159,17 @@ const getFaultyStock = async (branchId: string, skuId: string) => {
       },
     });
 
+    // receive faulty
+    const received = await prisma.stock.aggregate({
+      _sum: { quantity: true },
+      where: {
+        type: "faulty",
+        receiverId: branchId,
+        status: "received",
+        skuCodeId: skuId,
+      },
+    });
+
     // transfer to good
     const transfer = await prisma.stock.aggregate({
       _sum: { quantity: true },
@@ -170,6 +181,8 @@ const getFaultyStock = async (branchId: string, skuId: string) => {
 
     if (transfer?._sum?.quantity) quantity -= transfer._sum.quantity;
 
+    if (received?._sum?.quantity) quantity += received._sum.quantity;
+
     return quantity;
   } catch (err: any) {
     throw new Error(err);
@@ -179,11 +192,16 @@ const getFaultyStock = async (branchId: string, skuId: string) => {
 // get branch stock by sku id
 const branchStockBySkuId = async (branchId: string, skuId: string) => {
   try {
+    let quantity: number = 0;
+
+    // entry stock
     const entry = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: { type: "entry", senderId: branchId, skuCodeId: skuId },
     });
+    if (entry?._sum?.quantity) quantity += entry._sum.quantity;
 
+    // received stock
     const received = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: {
@@ -193,7 +211,9 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
         status: "received",
       },
     });
+    if (received?._sum?.quantity) quantity += received._sum.quantity;
 
+    // transfer stock
     const transfer = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: {
@@ -203,8 +223,10 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
         status: { in: ["open", "approved", "received"] },
       },
     });
+    if (transfer?._sum?.quantity) quantity -= transfer._sum.quantity;
 
-    const faultyReturn = await prisma.stock.aggregate({
+    // faulty return stock
+    const faultyRe = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: {
         type: "faulty",
@@ -213,30 +235,35 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
         status: { in: ["open", "received"] },
       },
     });
+    if (faultyRe?._sum?.quantity) quantity -= faultyRe._sum.quantity;
 
     // from faulty
     const faultyGood = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: { senderId: branchId, skuCodeId: skuId, type: "fromFaulty" },
     });
+    if (faultyGood?._sum?.quantity) quantity += faultyGood._sum.quantity;
 
     // purchase return
     const puReturn = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: { type: "purchaseReturn", senderId: branchId, skuCodeId: skuId },
     });
+    if (puReturn?._sum?.quantity) quantity -= puReturn._sum.quantity;
 
     // engineer transfer
     const engineer = await prisma.engineerStock.aggregate({
       _sum: { quantity: true },
       where: { skuCodeId: skuId, type: "transfer", branchId: branchId },
     });
+    if (engineer?._sum?.quantity) quantity -= engineer._sum.quantity;
 
     // engineer return
     const enReturn = await prisma.engineerStock.aggregate({
       _sum: { quantity: true },
       where: { skuCodeId: skuId, type: "return", branchId: branchId },
     });
+    if (enReturn?._sum?.quantity) quantity += enReturn._sum.quantity;
 
     const skuCode = await getSku(skuId);
     const avgPrice = await getAvgPrice(skuId);
@@ -244,44 +271,13 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
     const defective = await getBranchDefective(branchId, skuId);
     const faulty = await getFaultyStock(branchId, skuId);
 
-    const result: {
-      skuCode: any;
-      avgPrice: number;
-      quantity: number;
-      defective: number;
-      faulty: number;
-    } = {
+    const result: any = {
       skuCode,
       avgPrice,
-      quantity: 0,
+      quantity,
       defective,
       faulty,
     };
-
-    // entry quantity
-    if (entry?._sum?.quantity) result.quantity += entry._sum.quantity;
-
-    // faulty good quantity
-    if (faultyGood?._sum?.quantity) result.quantity += faultyGood._sum.quantity;
-
-    // received quantity
-    if (received?._sum?.quantity) result.quantity += received._sum.quantity;
-
-    // transfer quantity
-    if (transfer?._sum?.quantity) result.quantity -= transfer._sum.quantity;
-
-    // faulty quantity
-    if (faultyReturn?._sum?.quantity)
-      result.quantity -= faultyReturn._sum.quantity;
-
-    // purchase return
-    if (puReturn?._sum?.quantity) result.quantity -= puReturn._sum.quantity;
-
-    // engineer transfer quantity
-    if (engineer?._sum?.quantity) result.quantity -= engineer._sum.quantity;
-
-    // engineer return good quantity
-    if (enReturn?._sum?.quantity) result.quantity += enReturn._sum.quantity;
 
     // minus sell quantity
     if (sellQuantity) result.quantity -= sellQuantity;
