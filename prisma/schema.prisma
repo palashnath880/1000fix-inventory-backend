@@ -51,7 +51,7 @@ model Branch {
   id         String   @id @default(uuid())
   name       String   @unique
   address    String 
-  isHead     Boolean  @unique
+  isHead     Boolean 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
   receiver   Stock[] @relation("receiver")
