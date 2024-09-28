@@ -387,7 +387,7 @@ const receiveReport = async (
   }
 };
 
-// stock entry list
+// stock transfer list
 const transferList = async (
   req: Request<{}, {}, {}, { fromDate: string; toDate: string }>,
   res: Response
@@ -414,6 +414,7 @@ const transferList = async (
         quantity: true,
         createdAt: true,
         receiverId: true,
+        status: true,
         receiver: {
           select: {
             name: true,

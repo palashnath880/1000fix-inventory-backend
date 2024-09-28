@@ -308,7 +308,7 @@ const receiveReport = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(400).send(err);
     }
 });
-// stock entry list
+// stock transfer list
 const transferList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
@@ -330,6 +330,7 @@ const transferList = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 quantity: true,
                 createdAt: true,
                 receiverId: true,
+                status: true,
                 receiver: {
                     select: {
                         name: true,
