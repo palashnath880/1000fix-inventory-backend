@@ -473,7 +473,7 @@ const purchaseReturn = (req, res) => __awaiter(void 0, void 0, void 0, function*
     var _a, _b;
     try {
         const list = req.body.list;
-        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
         const data = list.map((i) => (Object.assign(Object.assign({}, i), { senderId: branchId, type: "purchaseReturn" })));
         const result = yield server_1.prisma.stock.createMany({
             data,

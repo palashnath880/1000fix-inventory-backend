@@ -606,7 +606,7 @@ const purchaseReturn = async (
 ) => {
   try {
     const list = req.body.list;
-    const branchId: string = req.cookies?.user?.id;
+    const branchId: string = req.cookies?.user?.branchId;
 
     const data: any = list.map((i) => ({
       ...i,
