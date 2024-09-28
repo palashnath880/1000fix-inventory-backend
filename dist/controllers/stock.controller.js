@@ -488,7 +488,7 @@ const purchaseReturn = (req, res) => __awaiter(void 0, void 0, void 0, function*
 const purchaseReturnList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
         const fromDate = req.query.fromDate ? new Date(req.query.fromDate) : "";
         const toDate = req.query.toDate ? new Date(req.query.toDate) : "";
         if (!fromDate || !toDate)

@@ -630,7 +630,7 @@ const purchaseReturnList = async (
   res: Response
 ) => {
   try {
-    const branchId = req.cookies?.user?.id;
+    const branchId = req.cookies?.user?.branchId;
     const fromDate = req.query.fromDate ? new Date(req.query.fromDate) : "";
     const toDate = req.query.toDate ? new Date(req.query.toDate) : "";
 
