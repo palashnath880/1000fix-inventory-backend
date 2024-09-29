@@ -426,6 +426,43 @@ const sendDefective = async (
   }
 };
 
+// send defective report
+const sendDeReport = async (
+  req: Request<{}, {}, {}, { fromDate: string; toDate: string }>,
+  res: Response
+) => {
+  try {
+    const id = req.cookies?.user?.id;
+    let fromDate: any = req.query.fromDate;
+    fromDate = fromDate ? new Date(fromDate) : new Date();
+    let toDate: any = req.query.toDate;
+    toDate = toDate
+      ? new Date(toDate)
+      : new Date(moment.tz("Asia/Dhaka").format("YYYY-MM-DD"));
+
+    const result = await prisma.engineerStock.findMany({
+      where: {
+        engineerId: id,
+        type: "defective",
+        createdAt: {
+          gte: fromDate,
+          lte: toDate,
+        },
+      },
+      include: {
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+    return res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   transfer,
   receive,
@@ -440,4 +477,5 @@ export default {
   getByEngineer,
   brTrReport,
   sendDefective,
+  sendDeReport,
 };

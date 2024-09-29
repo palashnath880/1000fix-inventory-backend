@@ -27,6 +27,9 @@ engineerStockRouter.post(`/faulty-return`, controller.faultyReturn);
 // send defective
 engineerStockRouter.post(`/defective`, controller.sendDefective);
 
+// defective report
+engineerStockRouter.get(`/defective`, controller.sendDeReport);
+
 // faulty stock return report
 engineerStockRouter.get(`/report/:userId`, controller.report);
 
