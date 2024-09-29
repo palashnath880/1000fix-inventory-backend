@@ -68,7 +68,10 @@ const getSellQuantity = async (branchId: string, skuId: string) => {
   try {
     const rows = await prisma.jobItem.aggregate({
       _sum: { quantity: true },
-      where: { skuCodeId: skuId, job: { branchId: branchId } },
+      where: {
+        skuCodeId: skuId,
+        job: { branchId: branchId, engineerId: null },
+      },
     });
 
     return rows._sum.quantity || 0;
