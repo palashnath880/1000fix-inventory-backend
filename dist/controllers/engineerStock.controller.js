@@ -311,6 +311,21 @@ const getByEngineer = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(400).send(err);
     }
 });
+// send defective to branch
+const sendDefective = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    try {
+        const data = req.body;
+        data.engineerId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
+        data.branchId = (_d = (_c = req.cookies) === null || _c === void 0 ? void 0 : _c.user) === null || _d === void 0 ? void 0 : _d.branchId;
+        data.type = "defective";
+        const result = yield server_1.prisma.engineerStock.create({ data });
+        return res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 exports.default = {
     transfer,
     receive,
@@ -324,4 +339,5 @@ exports.default = {
     stockByBranch,
     getByEngineer,
     brTrReport,
+    sendDefective,
 };

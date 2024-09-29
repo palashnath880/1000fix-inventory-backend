@@ -304,6 +304,9 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
 // get engineer stock by sku id
 const engineerStockBySkuId = async (userId: string, skuId: string) => {
   try {
+    let quantity = 0;
+    let defectiveQuantity = 0;
+    // received stock
     const received = await prisma.engineerStock.aggregate({
       _sum: { quantity: true },
       where: {
@@ -314,6 +317,7 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
       },
     });
 
+    // return stock
     const returnStock = await prisma.engineerStock.aggregate({
       _sum: { quantity: true },
       where: {
@@ -324,6 +328,7 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
       },
     });
 
+    // job entry item
     const sell = await prisma.jobItem.aggregate({
       _sum: { quantity: true },
       where: {
@@ -332,16 +337,38 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
       },
     });
 
+    // job entry defective
+    const defective = await prisma.jobItem.aggregate({
+      _sum: { quantity: true },
+      where: {
+        skuCodeId: skuId,
+        skuCode: { isDefective: true },
+        job: { engineerId: userId },
+      },
+    });
+    if (defective._sum.quantity) defectiveQuantity += defective._sum.quantity;
+
+    // send defective item
+    const sendDe = await prisma.engineerStock.aggregate({
+      _sum: { quantity: true },
+      where: {
+        engineerId: userId,
+        type: "defective",
+        skuCodeId: skuId,
+        status: { in: ["open", "received"] },
+      },
+    });
+    if (sendDe._sum.quantity) defectiveQuantity -= sendDe._sum.quantity;
+
     const avgPrice = await getAvgPrice(skuId);
     const skuCode = await getSku(skuId);
-    let quantity = 0;
 
     if (received?._sum?.quantity) quantity += received?._sum?.quantity;
     if (returnStock?._sum?.quantity) quantity -= returnStock?._sum?.quantity;
 
     if (sell?._sum?.quantity) quantity -= sell?._sum?.quantity;
 
-    return { quantity, skuCode, avgPrice };
+    return { quantity, skuCode, avgPrice, defective: defectiveQuantity };
   } catch (err: any) {
     throw new Error(err);
   }

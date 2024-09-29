@@ -304,6 +304,9 @@ exports.branchStockBySkuId = branchStockBySkuId;
 const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f;
     try {
+        let quantity = 0;
+        let defectiveQuantity = 0;
+        // received stock
         const received = yield server_1.prisma.engineerStock.aggregate({
             _sum: { quantity: true },
             where: {
@@ -313,6 +316,7 @@ const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0
                 skuCodeId: skuId,
             },
         });
+        // return stock
         const returnStock = yield server_1.prisma.engineerStock.aggregate({
             _sum: { quantity: true },
             where: {
@@ -322,6 +326,7 @@ const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0
                 status: { in: ["open", "received"] },
             },
         });
+        // job entry item
         const sell = yield server_1.prisma.jobItem.aggregate({
             _sum: { quantity: true },
             where: {
@@ -329,16 +334,38 @@ const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0
                 job: { engineerId: userId, sellFrom: "engineer" },
             },
         });
+        // job entry defective
+        const defective = yield server_1.prisma.jobItem.aggregate({
+            _sum: { quantity: true },
+            where: {
+                skuCodeId: skuId,
+                skuCode: { isDefective: true },
+                job: { engineerId: userId },
+            },
+        });
+        if (defective._sum.quantity)
+            defectiveQuantity += defective._sum.quantity;
+        // send defective item
+        const sendDe = yield server_1.prisma.engineerStock.aggregate({
+            _sum: { quantity: true },
+            where: {
+                engineerId: userId,
+                type: "defective",
+                skuCodeId: skuId,
+                status: { in: ["open", "received"] },
+            },
+        });
+        if (sendDe._sum.quantity)
+            defectiveQuantity -= sendDe._sum.quantity;
         const avgPrice = yield getAvgPrice(skuId);
         const skuCode = yield getSku(skuId);
-        let quantity = 0;
         if ((_a = received === null || received === void 0 ? void 0 : received._sum) === null || _a === void 0 ? void 0 : _a.quantity)
             quantity += (_b = received === null || received === void 0 ? void 0 : received._sum) === null || _b === void 0 ? void 0 : _b.quantity;
         if ((_c = returnStock === null || returnStock === void 0 ? void 0 : returnStock._sum) === null || _c === void 0 ? void 0 : _c.quantity)
             quantity -= (_d = returnStock === null || returnStock === void 0 ? void 0 : returnStock._sum) === null || _d === void 0 ? void 0 : _d.quantity;
         if ((_e = sell === null || sell === void 0 ? void 0 : sell._sum) === null || _e === void 0 ? void 0 : _e.quantity)
             quantity -= (_f = sell === null || sell === void 0 ? void 0 : sell._sum) === null || _f === void 0 ? void 0 : _f.quantity;
-        return { quantity, skuCode, avgPrice };
+        return { quantity, skuCode, avgPrice, defective: defectiveQuantity };
     }
     catch (err) {
         throw new Error(err);

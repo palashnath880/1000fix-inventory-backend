@@ -398,6 +398,34 @@ const getByEngineer = async (
   }
 };
 
+// send defective to branch
+const sendDefective = async (
+  req: Request<
+    {},
+    {},
+    {
+      skuCodeId: string;
+      quantity: number;
+      engineerId: string;
+      branchId: string;
+      type: "defective";
+    }
+  >,
+  res: Response
+) => {
+  try {
+    const data = req.body;
+    data.engineerId = req.cookies?.user?.id;
+    data.branchId = req.cookies?.user?.branchId;
+    data.type = "defective";
+
+    const result = await prisma.engineerStock.create({ data });
+    return res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   transfer,
   receive,
@@ -411,4 +439,5 @@ export default {
   stockByBranch,
   getByEngineer,
   brTrReport,
+  sendDefective,
 };

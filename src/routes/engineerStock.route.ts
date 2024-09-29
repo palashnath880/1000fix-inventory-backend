@@ -24,6 +24,9 @@ engineerStockRouter.get(`/return-stock/:type`, controller.stockByBranch);
 // faulty stock return
 engineerStockRouter.post(`/faulty-return`, controller.faultyReturn);
 
+// send defective
+engineerStockRouter.post(`/defective`, controller.sendDefective);
+
 // faulty stock return report
 engineerStockRouter.get(`/report/:userId`, controller.report);
 
