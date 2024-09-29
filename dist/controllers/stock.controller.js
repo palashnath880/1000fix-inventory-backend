@@ -457,11 +457,10 @@ const sendDefective = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 const moveToGood = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const data = req.body;
+        const list = req.body.list;
         const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
-        data.senderId = branchId;
-        data.type = "fromFaulty";
-        const result = yield server_1.prisma.stock.create({ data });
+        const data = list.map((i) => (Object.assign(Object.assign({}, i), { senderId: branchId, type: "fromFaulty" })));
+        const result = yield server_1.prisma.stock.createMany({ data: data });
         res.send(result);
     }
     catch (err) {

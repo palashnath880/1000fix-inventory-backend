@@ -151,7 +151,7 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
 exports.getBranchDefective = getBranchDefective;
 // get branch faulty stock
 const getFaultyStock = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     try {
         // engineer faulty stock
         const engineer = yield server_1.prisma.engineerStock.aggregate({
@@ -178,6 +178,14 @@ const getFaultyStock = (branchId, skuId) => __awaiter(void 0, void 0, void 0, fu
             _sum: { quantity: true },
             where: { type: "fromFaulty", senderId: branchId, skuCodeId: skuId },
         });
+        // scrap stock
+        const scrap = yield server_1.prisma.scrapItem.aggregate({
+            _sum: { quantity: true },
+            where: {
+                skuCodeId: skuId,
+                scrap: { branchId: branchId, from: "faulty" },
+            },
+        });
         let quantity = 0;
         if ((_a = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _a === void 0 ? void 0 : _a.quantity)
             quantity += engineer._sum.quantity;
@@ -185,6 +193,8 @@ const getFaultyStock = (branchId, skuId) => __awaiter(void 0, void 0, void 0, fu
             quantity -= transfer._sum.quantity;
         if ((_c = received === null || received === void 0 ? void 0 : received._sum) === null || _c === void 0 ? void 0 : _c.quantity)
             quantity += received._sum.quantity;
+        if ((_d = scrap === null || scrap === void 0 ? void 0 : scrap._sum) === null || _d === void 0 ? void 0 : _d.quantity)
+            quantity -= scrap._sum.quantity;
         return quantity;
     }
     catch (err) {

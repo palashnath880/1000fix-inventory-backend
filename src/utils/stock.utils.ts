@@ -176,12 +176,23 @@ const getFaultyStock = async (branchId: string, skuId: string) => {
       where: { type: "fromFaulty", senderId: branchId, skuCodeId: skuId },
     });
 
+    // scrap stock
+    const scrap = await prisma.scrapItem.aggregate({
+      _sum: { quantity: true },
+      where: {
+        skuCodeId: skuId,
+        scrap: { branchId: branchId, from: "faulty" },
+      },
+    });
+
     let quantity = 0;
     if (engineer?._sum?.quantity) quantity += engineer._sum.quantity;
 
     if (transfer?._sum?.quantity) quantity -= transfer._sum.quantity;
 
     if (received?._sum?.quantity) quantity += received._sum.quantity;
+
+    if (scrap?._sum?.quantity) quantity -= scrap._sum.quantity;
 
     return quantity;
   } catch (err: any) {

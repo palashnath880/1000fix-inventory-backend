@@ -571,22 +571,31 @@ const moveToGood = async (
     {},
     {},
     {
-      skuCodeId: string;
-      quantity: number;
-      type: "fromFaulty";
-      senderId: string;
+      list: {
+        skuCodeId: string;
+        quantity: number;
+        type: "fromFaulty" | "entry";
+        senderId: string;
+      }[];
     }
   >,
   res: Response
 ) => {
   try {
-    const data = req.body;
+    const list = req.body.list;
     const branchId = req.cookies?.user?.branchId;
 
-    data.senderId = branchId;
-    data.type = "fromFaulty";
-
-    const result = await prisma.stock.create({ data });
+    const data: {
+      skuCodeId: string;
+      quantity: number;
+      type: "fromFaulty" | "entry";
+      senderId: string;
+    }[] = list.map((i) => ({
+      ...i,
+      senderId: branchId,
+      type: "fromFaulty",
+    }));
+    const result = await prisma.stock.createMany({ data: data });
     res.send(result);
   } catch (err) {
     res.status(400).send(err);
