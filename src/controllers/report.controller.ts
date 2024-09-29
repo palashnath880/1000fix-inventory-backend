@@ -36,4 +36,43 @@ const scrap = async (
   }
 };
 
-export default { scrap };
+// engineer return faulty and good stock report by branch
+const enReRepByBranch = async (
+  req: Request<
+    { type: "return" | "faulty" },
+    {},
+    {},
+    { fromDate: string; toDate: string }
+  >,
+  res: Response
+) => {
+  try {
+    const type = req.params.type;
+    const branchId = req.cookies?.user?.branchId;
+    let fromDate: any = req.query.fromDate;
+    fromDate = fromDate ? new Date(fromDate) : new Date();
+
+    let toDate: any = req.query.toDate;
+    toDate = toDate
+      ? new Date(toDate)
+      : new Date(moment.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
+
+    const result = await prisma.engineerStock.findMany({
+      where: { type, branchId, createdAt: { gte: fromDate, lte: toDate } },
+      include: {
+        engineer: true,
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+export default { scrap, enReRepByBranch };

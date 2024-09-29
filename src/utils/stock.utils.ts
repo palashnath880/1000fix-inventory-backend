@@ -152,6 +152,7 @@ const getBranchDefective = async (branchId: string, skuId: string) => {
 // get branch faulty stock
 const getFaultyStock = async (branchId: string, skuId: string) => {
   try {
+    let quantity = 0;
     // engineer faulty stock
     const engineer = await prisma.engineerStock.aggregate({
       _sum: { quantity: true },
@@ -162,6 +163,7 @@ const getFaultyStock = async (branchId: string, skuId: string) => {
         skuCodeId: skuId,
       },
     });
+    if (engineer?._sum?.quantity) quantity += engineer._sum.quantity;
 
     // receive faulty
     const received = await prisma.stock.aggregate({
@@ -173,12 +175,14 @@ const getFaultyStock = async (branchId: string, skuId: string) => {
         skuCodeId: skuId,
       },
     });
+    if (received?._sum?.quantity) quantity += received._sum.quantity;
 
     // transfer to good
-    const transfer = await prisma.stock.aggregate({
+    const good = await prisma.stock.aggregate({
       _sum: { quantity: true },
       where: { type: "fromFaulty", senderId: branchId, skuCodeId: skuId },
     });
+    if (good?._sum?.quantity) quantity -= good._sum.quantity;
 
     // scrap stock
     const scrap = await prisma.scrapItem.aggregate({
@@ -188,14 +192,6 @@ const getFaultyStock = async (branchId: string, skuId: string) => {
         scrap: { branchId: branchId, from: "faulty" },
       },
     });
-
-    let quantity = 0;
-    if (engineer?._sum?.quantity) quantity += engineer._sum.quantity;
-
-    if (transfer?._sum?.quantity) quantity -= transfer._sum.quantity;
-
-    if (received?._sum?.quantity) quantity += received._sum.quantity;
-
     if (scrap?._sum?.quantity) quantity -= scrap._sum.quantity;
 
     return quantity;
