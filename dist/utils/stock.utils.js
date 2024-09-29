@@ -97,6 +97,7 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
                 },
                 job: {
                     branchId: branchId,
+                    engineerId: null,
                 },
             },
         });

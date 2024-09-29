@@ -92,6 +92,7 @@ const getBranchDefective = async (branchId: string, skuId: string) => {
         },
         job: {
           branchId: branchId,
+          engineerId: null,
         },
       },
     });
