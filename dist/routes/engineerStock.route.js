@@ -34,4 +34,11 @@ engineerStockRouter.get(`/receive-report/:userId`, engineerStock_controller_1.de
 engineerStockRouter.put(`/:stockId`, engineerStock_controller_1.default.update);
 // get by engineer id
 engineerStockRouter.get(`/:id`, engineerStock_controller_1.default.getByEngineer);
+// csc routes
+// csc defective items
+engineerStockRouter.get(`/csc/defective`, engineerStock_controller_1.default.cscDefective);
+// csc defective item action
+engineerStockRouter.put(`/csc/defective/:id`, engineerStock_controller_1.default.cscActions);
+// csc defective action report
+engineerStockRouter.get(`/csc/defective/report`, engineerStock_controller_1.default.cscDeReport);
 exports.default = engineerStockRouter;

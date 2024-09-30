@@ -360,6 +360,84 @@ const sendDeReport = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(400).send(err);
     }
 });
+// engineer send defective by branch
+const cscDefective = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const result = yield server_1.prisma.engineerStock.findMany({
+            where: {
+                branchId,
+                status: "open",
+                type: "defective",
+            },
+            include: {
+                engineer: true,
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// branch defective actions
+const cscActions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = req.params.id;
+        const data = req.body;
+        const result = yield server_1.prisma.engineerStock.update({
+            where: { id },
+            data: Object.assign(Object.assign({}, data), { endAt: moment_timezone_1.default.tz("Asia/Dhaka").toISOString() }),
+        });
+        res.send(result);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(400).send(err);
+    }
+});
+// csc defective receive/ reject report
+const cscDeReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        let fromDate = req.query.fromDate;
+        fromDate = fromDate ? new Date(fromDate) : new Date();
+        let toDate = req.query.toDate;
+        toDate = toDate
+            ? new Date(toDate)
+            : new Date(moment_timezone_1.default.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
+        const result = yield server_1.prisma.engineerStock.findMany({
+            where: {
+                branchId,
+                type: "defective",
+                createdAt: {
+                    gte: fromDate,
+                    lte: toDate,
+                },
+                status: { in: ["received", "rejected"] },
+            },
+            include: {
+                engineer: true,
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
 exports.default = {
     transfer,
     receive,
@@ -375,4 +453,7 @@ exports.default = {
     brTrReport,
     sendDefective,
     sendDeReport,
+    cscDefective,
+    cscActions,
+    cscDeReport,
 };

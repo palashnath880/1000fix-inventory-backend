@@ -45,4 +45,15 @@ engineerStockRouter.put(`/:stockId`, controller.update);
 // get by engineer id
 engineerStockRouter.get(`/:id`, controller.getByEngineer);
 
+// csc routes
+
+// csc defective items
+engineerStockRouter.get(`/csc/defective`, controller.cscDefective);
+
+// csc defective item action
+engineerStockRouter.put(`/csc/defective/:id`, controller.cscActions);
+
+// csc defective action report
+engineerStockRouter.get(`/csc/defective/report`, controller.cscDeReport);
+
 export default engineerStockRouter;

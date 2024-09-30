@@ -39,7 +39,7 @@ const scrap = async (
 // engineer return faulty and good stock report by branch
 const enReRepByBranch = async (
   req: Request<
-    { type: "return" | "faulty" },
+    { type: "return" | "faulty" | "defective" },
     {},
     {},
     { fromDate: string; toDate: string }

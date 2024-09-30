@@ -463,6 +463,102 @@ const sendDeReport = async (
   }
 };
 
+// engineer send defective by branch
+const cscDefective = async (req: Request, res: Response) => {
+  try {
+    const branchId = req.cookies?.user?.branchId;
+
+    const result = await prisma.engineerStock.findMany({
+      where: {
+        branchId,
+        status: "open",
+        type: "defective",
+      },
+      include: {
+        engineer: true,
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// branch defective actions
+const cscActions = async (
+  req: Request<
+    { id: string },
+    {},
+    { status: "received" | "rejected"; note: string | null }
+  >,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const data = req.body;
+
+    const result = await prisma.engineerStock.update({
+      where: { id },
+      data: {
+        ...data,
+        endAt: moment.tz("Asia/Dhaka").toISOString(),
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    console.log(err);
+    res.status(400).send(err);
+  }
+};
+
+// csc defective receive/ reject report
+const cscDeReport = async (
+  req: Request<{}, {}, {}, { fromDate: string; toDate: string }>,
+  res: Response
+) => {
+  try {
+    const branchId = req.cookies?.user?.branchId;
+    let fromDate: any = req.query.fromDate;
+    fromDate = fromDate ? new Date(fromDate) : new Date();
+
+    let toDate: any = req.query.toDate;
+    toDate = toDate
+      ? new Date(toDate)
+      : new Date(moment.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
+
+    const result = await prisma.engineerStock.findMany({
+      where: {
+        branchId,
+        type: "defective",
+        createdAt: {
+          gte: fromDate,
+          lte: toDate,
+        },
+        status: { in: ["received", "rejected"] },
+      },
+      include: {
+        engineer: true,
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   transfer,
   receive,
@@ -478,4 +574,7 @@ export default {
   brTrReport,
   sendDefective,
   sendDeReport,
+  cscDefective,
+  cscActions,
+  cscDeReport,
 };
