@@ -53,6 +53,9 @@ model Branch {
   name       String   @unique
   address    String 
   isHead     Boolean  @default(false)
+  parentId   String?
+  headCSC    Branch?  @relation("BranchToParent",fields: [parentId], references: [id])
+  childCSC   Branch[] @relation("BranchToParent")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
   receiver   Stock[] @relation("receiver")
