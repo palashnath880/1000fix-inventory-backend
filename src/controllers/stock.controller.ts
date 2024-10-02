@@ -538,7 +538,7 @@ const sendDefective = async (
       list: {
         skuCodeId: string;
         quantity: number;
-        type: "defective" | "scrap";
+        type: "defective" | "faulty";
       }[];
     }
   >,
@@ -669,6 +669,172 @@ const purchaseReturnList = async (
   }
 };
 
+// send faulty to csc head
+const sendFaulty = async (
+  req: Request<
+    {},
+    {},
+    {
+      senderId: string;
+      receiverId: string;
+      challan: string;
+      type: "faulty";
+      items: {
+        skuCodeId: string;
+        quantity: number;
+        type: "faulty";
+      }[];
+    }
+  >,
+  res: Response
+) => {
+  try {
+    const senderId = req.cookies?.user?.branchId;
+    const data = req.body;
+
+    data.challan = `FC-${generateChallan()}`;
+    data.senderId = senderId;
+    data.type = "faulty";
+
+    data.items = data.items.map((i) => ({ ...i, type: "faulty" }));
+
+    const result = await prisma.stock.create({
+      data: { ...data, items: { create: data.items } },
+    });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// faulty stock list
+const cscPendingFaulty = async (req: Request, res: Response) => {
+  try {
+    const branchId = req.cookies?.user?.branchId;
+    const result = await prisma.stock.findMany({
+      where: {
+        receiverId: branchId,
+        status: "open",
+        type: "faulty",
+      },
+      include: {
+        sender: true,
+        items: {
+          include: {
+            skuCode: {
+              include: {
+                item: { include: { model: { include: { category: true } } } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// faulty stock receive reject
+const cscFaultyActions = async (
+  req: Request<
+    { id: string },
+    {},
+    { status: "received" | "rejected"; note: string; endAt: string }
+  >,
+  res: Response
+) => {
+  try {
+    const id = req.params.id;
+    const data = req.body;
+
+    data.endAt = moment.tz("Asia/Dhaka").toISOString();
+
+    const result = await prisma.stock.update({
+      data: data,
+      where: { id, type: "faulty", status: "open" },
+    });
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// faulty csc report
+const cscFaultyReport = async (
+  req: Request<{}, {}, {}, { fromDate: string; toDate: string }>,
+  res: Response
+) => {
+  try {
+    const user = req.cookies?.user;
+    const branchId = user?.branchId;
+
+    const fromDate = req.query.fromDate
+      ? new Date(req.query.fromDate)
+      : new Date();
+    const toDate = req.query.toDate
+      ? new Date(req.query.toDate)
+      : new Date(moment.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
+
+    // csc general faulty send report
+    if (user?.role === "manager") {
+      const result = await prisma.stock.findMany({
+        where: {
+          senderId: branchId,
+          type: "faulty",
+          createdAt: {
+            gte: fromDate,
+            lte: toDate,
+          },
+        },
+        include: {
+          items: {
+            include: {
+              skuCode: {
+                include: {
+                  item: { include: { model: { include: { category: true } } } },
+                },
+              },
+            },
+          },
+        },
+      });
+      return res.send(result);
+    }
+
+    // csc head faulty receive reject report
+    const result = await prisma.stock.findMany({
+      where: {
+        receiverId: branchId,
+        type: "faulty",
+        status: { in: ["received", "rejected"] },
+        createdAt: {
+          gte: fromDate,
+          lte: toDate,
+        },
+      },
+      include: {
+        sender: true,
+        items: {
+          include: {
+            skuCode: {
+              include: {
+                item: { include: { model: { include: { category: true } } } },
+              },
+            },
+          },
+        },
+      },
+    });
+    return res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
 export default {
   entry,
   transfer,
@@ -688,4 +854,8 @@ export default {
   purchaseReturn,
   purchaseReturnList,
   branchStock,
+  cscFaultyReport,
+  cscFaultyActions,
+  cscPendingFaulty,
+  sendFaulty,
 };

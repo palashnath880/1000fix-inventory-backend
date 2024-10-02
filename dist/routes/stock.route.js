@@ -42,4 +42,10 @@ stockRouter.post(`/faulty-to-good`, stock_controller_1.default.moveToGood);
 stockRouter.post(`/purchase-return`, stock_controller_1.default.purchaseReturn);
 // purchase return list
 stockRouter.get(`/purchase-return`, stock_controller_1.default.purchaseReturnList);
+// faulty pending stock by csc head
+stockRouter.get(`/faulty`, stock_controller_1.default.cscPendingFaulty);
+// faulty report by csc
+stockRouter.get(`/faulty/report`, stock_controller_1.default.cscFaultyReport);
+// faulty received / rejected by csc head
+stockRouter.put(`/faulty/:id`, stock_controller_1.default.cscFaultyActions);
 exports.default = stockRouter;

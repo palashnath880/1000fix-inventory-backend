@@ -60,4 +60,13 @@ stockRouter.post(`/purchase-return`, stockController.purchaseReturn);
 // purchase return list
 stockRouter.get(`/purchase-return`, stockController.purchaseReturnList);
 
+// faulty pending stock by csc head
+stockRouter.get(`/faulty`, stockController.cscPendingFaulty);
+
+// faulty report by csc
+stockRouter.get(`/faulty/report`, stockController.cscFaultyReport);
+
+// faulty received / rejected by csc head
+stockRouter.put(`/faulty/:id`, stockController.cscFaultyActions);
+
 export default stockRouter;
