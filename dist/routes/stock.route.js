@@ -20,8 +20,6 @@ stockRouter.get(`/get-by-sku`, stock_controller_1.default.ownStockBySkuId);
 stockRouter.get(`/get-by-sku/:engineerId/:skuId`, stock_controller_1.default.engineerStockBySku);
 // transfer to branch
 stockRouter.post(`/transfer`, stock_controller_1.default.transfer);
-// return stock
-stockRouter.post(`/return`, stock_controller_1.default.returnStock);
 // transfer list
 stockRouter.get(`/transfer`, stock_controller_1.default.transferList);
 // receive stock list
@@ -42,10 +40,4 @@ stockRouter.post(`/faulty-to-good`, stock_controller_1.default.moveToGood);
 stockRouter.post(`/purchase-return`, stock_controller_1.default.purchaseReturn);
 // purchase return list
 stockRouter.get(`/purchase-return`, stock_controller_1.default.purchaseReturnList);
-// faulty pending stock by csc head
-stockRouter.get(`/faulty`, stock_controller_1.default.cscPendingFaulty);
-// faulty report by csc
-stockRouter.get(`/faulty/report`, stock_controller_1.default.cscFaultyReport);
-// faulty received / rejected by csc head
-stockRouter.put(`/faulty/:id`, stock_controller_1.default.cscFaultyActions);
 exports.default = stockRouter;

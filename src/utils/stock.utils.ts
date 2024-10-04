@@ -150,7 +150,11 @@ const getBranchDefective = async (branchId: string, skuId: string) => {
 };
 
 // get branch faulty stock
-const getFaultyStock = async (branchId: string, skuId: string) => {
+const getFaultyStock = async (
+  branchId: string,
+  skuId: string,
+  isAdmin?: boolean
+) => {
   try {
     let quantity = 0;
     // engineer faulty stock
@@ -166,16 +170,11 @@ const getFaultyStock = async (branchId: string, skuId: string) => {
     if (engineer?._sum?.quantity) quantity += engineer._sum.quantity;
 
     // receive faulty
-    const received = await prisma.stock.aggregate({
+    const received = await prisma.faulty.aggregate({
       _sum: { quantity: true },
-      where: {
-        type: "faulty",
-        receiverId: branchId,
-        status: "received",
-        skuCodeId: skuId,
-      },
+      where: { skuCodeId: skuId, status: "received" },
     });
-    if (received?._sum?.quantity) quantity += received._sum.quantity;
+    if (received?._sum?.quantity && isAdmin) quantity += received._sum.quantity;
 
     // transfer to good
     const good = await prisma.stock.aggregate({
@@ -237,13 +236,12 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
     if (transfer?._sum?.quantity) quantity -= transfer._sum.quantity;
 
     // faulty return stock
-    const faultyRe = await prisma.stock.aggregate({
+    const faultyRe = await prisma.faulty.aggregate({
       _sum: { quantity: true },
       where: {
-        type: "faulty",
-        senderId: branchId,
-        skuCodeId: skuId,
+        branchId: branchId,
         status: { in: ["open", "received"] },
+        skuCodeId: skuId,
       },
     });
     if (faultyRe?._sum?.quantity) quantity -= faultyRe._sum.quantity;

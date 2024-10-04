@@ -13,6 +13,7 @@ import { verifyAuthToken } from "../middlewares/verifyToken";
 import challanRouter from "./challan.route";
 import reportRouter from "./report.route";
 import scrapRouter from "./scrap.route";
+import faultyRouter from "./faulty.route";
 
 const routes = Router();
 
@@ -54,5 +55,8 @@ routes.use("/report", verifyAuthToken, reportRouter);
 
 // scrap
 routes.use("/scrap", verifyAuthToken, scrapRouter);
+
+// faulty
+routes.use("/faulty", verifyAuthToken, faultyRouter);
 
 export default routes;

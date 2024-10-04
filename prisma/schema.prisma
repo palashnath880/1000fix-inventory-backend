@@ -17,7 +17,6 @@ enum Role {
 enum StockType {
   entry
   transfer
-  faulty
   defective
   fromFaulty
   purchaseReturn
@@ -64,6 +63,7 @@ model Branch {
   job        Job[]
   scrap      Scrap[]
   enStocks   EngineerStock[]
+  faulty     Faulty[]
 }
 
 model User{
@@ -122,6 +122,7 @@ model SkuCode {
   stockItems  StockItem[]
   challanItems ChallanItem[]
   scrapItems  ScrapItem[]
+  faulty      Faulty[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
 }
@@ -251,4 +252,20 @@ model ScrapItem{
   scrap       Scrap @relation(fields: [scrapId], references: [id])
   scrapId     String
   createdAt   DateTime @default(now())
+}
+
+model Faulty {
+  id         String   @id @default(uuid())
+  fromCSC    Boolean  @default(false)
+  status     StockStatus @default(open)
+  quantity   Float    @default(0)
+  reason     String?
+  endReason  String?
+  branch     Branch @relation(fields: [branchId],references: [id])
+  branchId   String
+  skuCode    SkuCode? @relation(fields: [skuCodeId],references: [id])
+  skuCodeId  String?
+  endAt      DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) 
 }

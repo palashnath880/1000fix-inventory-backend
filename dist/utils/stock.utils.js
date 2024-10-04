@@ -154,7 +154,7 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
 });
 exports.getBranchDefective = getBranchDefective;
 // get branch faulty stock
-const getFaultyStock = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
+const getFaultyStock = (branchId, skuId, isAdmin) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
     try {
         let quantity = 0;
@@ -171,16 +171,11 @@ const getFaultyStock = (branchId, skuId) => __awaiter(void 0, void 0, void 0, fu
         if ((_a = engineer === null || engineer === void 0 ? void 0 : engineer._sum) === null || _a === void 0 ? void 0 : _a.quantity)
             quantity += engineer._sum.quantity;
         // receive faulty
-        const received = yield server_1.prisma.stock.aggregate({
+        const received = yield server_1.prisma.faulty.aggregate({
             _sum: { quantity: true },
-            where: {
-                type: "faulty",
-                receiverId: branchId,
-                status: "received",
-                skuCodeId: skuId,
-            },
+            where: { skuCodeId: skuId, status: "received" },
         });
-        if ((_b = received === null || received === void 0 ? void 0 : received._sum) === null || _b === void 0 ? void 0 : _b.quantity)
+        if (((_b = received === null || received === void 0 ? void 0 : received._sum) === null || _b === void 0 ? void 0 : _b.quantity) && isAdmin)
             quantity += received._sum.quantity;
         // transfer to good
         const good = yield server_1.prisma.stock.aggregate({
@@ -242,13 +237,12 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         if ((_c = transfer === null || transfer === void 0 ? void 0 : transfer._sum) === null || _c === void 0 ? void 0 : _c.quantity)
             quantity -= transfer._sum.quantity;
         // faulty return stock
-        const faultyRe = yield server_1.prisma.stock.aggregate({
+        const faultyRe = yield server_1.prisma.faulty.aggregate({
             _sum: { quantity: true },
             where: {
-                type: "faulty",
-                senderId: branchId,
-                skuCodeId: skuId,
+                branchId: branchId,
                 status: { in: ["open", "received"] },
+                skuCodeId: skuId,
             },
         });
         if ((_d = faultyRe === null || faultyRe === void 0 ? void 0 : faultyRe._sum) === null || _d === void 0 ? void 0 : _d.quantity)

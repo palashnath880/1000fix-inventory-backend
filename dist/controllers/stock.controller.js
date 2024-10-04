@@ -199,25 +199,6 @@ const transfer = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
-// return
-const returnStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
-    try {
-        let list = req.body.list;
-        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
-        const newList = list.map((item) => {
-            item.senderId = branchId;
-            item.type = "faulty";
-            item.status = "open";
-            return item;
-        });
-        const result = yield server_1.prisma.stock.createMany({ data: newList });
-        res.send(result);
-    }
-    catch (err) {
-        res.status(400).send(err);
-    }
-});
 // stock receive
 const receiveStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -515,138 +496,6 @@ const purchaseReturnList = (req, res) => __awaiter(void 0, void 0, void 0, funct
         res.status(400).send(err);
     }
 });
-// send faulty to csc head
-const sendFaulty = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
-    try {
-        const senderId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
-        const data = req.body;
-        data.challan = `FC-${(0, challan_utils_1.generateChallan)()}`;
-        data.senderId = senderId;
-        data.type = "faulty";
-        data.items = data.items.map((i) => (Object.assign(Object.assign({}, i), { type: "faulty" })));
-        const result = yield server_1.prisma.stock.create({
-            data: Object.assign(Object.assign({}, data), { items: { create: data.items } }),
-        });
-        res.send(result);
-    }
-    catch (err) {
-        res.status(400).send(err);
-    }
-});
-// faulty stock list
-const cscPendingFaulty = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
-    try {
-        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
-        const result = yield server_1.prisma.stock.findMany({
-            where: {
-                receiverId: branchId,
-                status: "open",
-                type: "faulty",
-            },
-            include: {
-                sender: true,
-                items: {
-                    include: {
-                        skuCode: {
-                            include: {
-                                item: { include: { model: { include: { category: true } } } },
-                            },
-                        },
-                    },
-                },
-            },
-        });
-        res.send(result);
-    }
-    catch (err) {
-        res.status(400).send(err);
-    }
-});
-// faulty stock receive reject
-const cscFaultyActions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const id = req.params.id;
-        const data = req.body;
-        data.endAt = moment_timezone_1.default.tz("Asia/Dhaka").toISOString();
-        const result = yield server_1.prisma.stock.update({
-            data: data,
-            where: { id, type: "faulty", status: "open" },
-        });
-        res.send(result);
-    }
-    catch (err) {
-        res.status(400).send(err);
-    }
-});
-// faulty csc report
-const cscFaultyReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    try {
-        const user = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user;
-        const branchId = user === null || user === void 0 ? void 0 : user.branchId;
-        const fromDate = req.query.fromDate
-            ? new Date(req.query.fromDate)
-            : new Date();
-        const toDate = req.query.toDate
-            ? new Date(req.query.toDate)
-            : new Date(moment_timezone_1.default.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
-        // csc general faulty send report
-        if ((user === null || user === void 0 ? void 0 : user.role) === "manager") {
-            const result = yield server_1.prisma.stock.findMany({
-                where: {
-                    senderId: branchId,
-                    type: "faulty",
-                    createdAt: {
-                        gte: fromDate,
-                        lte: toDate,
-                    },
-                },
-                include: {
-                    items: {
-                        include: {
-                            skuCode: {
-                                include: {
-                                    item: { include: { model: { include: { category: true } } } },
-                                },
-                            },
-                        },
-                    },
-                },
-            });
-            return res.send(result);
-        }
-        // csc head faulty receive reject report
-        const result = yield server_1.prisma.stock.findMany({
-            where: {
-                receiverId: branchId,
-                type: "faulty",
-                status: { in: ["received", "rejected"] },
-                createdAt: {
-                    gte: fromDate,
-                    lte: toDate,
-                },
-            },
-            include: {
-                sender: true,
-                items: {
-                    include: {
-                        skuCode: {
-                            include: {
-                                item: { include: { model: { include: { category: true } } } },
-                            },
-                        },
-                    },
-                },
-            },
-        });
-        return res.send(result);
-    }
-    catch (err) {
-        res.status(400).send(err);
-    }
-});
 exports.default = {
     entry,
     transfer,
@@ -658,7 +507,6 @@ exports.default = {
     statusUpdate,
     receiveReport,
     approvalStock,
-    returnStock,
     engineerStockBySku,
     getDefective,
     sendDefective,
@@ -666,8 +514,4 @@ exports.default = {
     purchaseReturn,
     purchaseReturnList,
     branchStock,
-    cscFaultyReport,
-    cscFaultyActions,
-    cscPendingFaulty,
-    sendFaulty,
 };
