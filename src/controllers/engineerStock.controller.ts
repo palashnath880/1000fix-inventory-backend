@@ -387,7 +387,7 @@ const getByEngineer = async (
 
     for (const skuCode of skuCodes) {
       const stock = await engineerStockBySkuId(id, skuCode.id);
-      if (stock.quantity > 0) {
+      if (stock.quantity > 0 || stock.defective > 0) {
         stockArr.push({ ...stock, engineer });
       }
     }
