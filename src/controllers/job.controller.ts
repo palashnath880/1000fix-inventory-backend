@@ -93,7 +93,7 @@ const jobList = async (
         },
       },
       include: {
-        items: { include: { skuCode: true } },
+        items: { include: { skuCode: { include: { item: true } } } },
         engineer: {
           select: {
             name: true,

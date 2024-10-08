@@ -74,7 +74,7 @@ const jobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             },
             include: {
-                items: { include: { skuCode: true } },
+                items: { include: { skuCode: { include: { item: true } } } },
                 engineer: {
                     select: {
                         name: true,
