@@ -12,6 +12,8 @@ faultyRouter.post(`/`, faulty_controller_1.default.create);
 faultyRouter.get(`/report`, faulty_controller_1.default.report);
 // update action
 faultyRouter.put(`/:id`, faulty_controller_1.default.faultyAction);
-//  get
+// get
 faultyRouter.get(`/head-faulty`, faulty_controller_1.default.headFaulty);
+// own faulty
+faultyRouter.get(`/own-stock`, faulty_controller_1.default.ownFaulty);
 exports.default = faultyRouter;

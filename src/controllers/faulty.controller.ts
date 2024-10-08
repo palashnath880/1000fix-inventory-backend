@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
 import moment from "moment-timezone";
+import { getFaultyStock } from "../utils/stock.utils";
 
 // send faulty to csc head
 const create = async (
@@ -91,6 +92,7 @@ const report = async (
     if (user?.role === "manager") {
       const result = await prisma.faulty.findMany({
         where: {
+          branchId: branchId,
           createdAt: {
             gte: fromDate,
             lte: toDate,
@@ -117,6 +119,7 @@ const report = async (
         },
       },
       include: {
+        branch: true,
         skuCode: {
           include: {
             item: { include: { model: { include: { category: true } } } },
@@ -124,7 +127,39 @@ const report = async (
         },
       },
     });
-    return res.send(result);
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// own faulty stock
+const ownFaulty = async (
+  req: Request<{}, {}, {}, { skuId: string }>,
+  res: Response
+) => {
+  try {
+    const skuId = req.query.skuId;
+    const user = req.cookies?.user;
+    const isAdmin: boolean = user?.role === "admin";
+
+    const stockArr: any[] = [];
+
+    const skuCodes = await prisma.skuCode.findMany({
+      where: skuId ? { id: skuId } : {},
+      orderBy: [{ item: { model: { category: { name: "asc" } } } }],
+      include: {
+        item: { include: { model: { include: { category: true } } } },
+      },
+    });
+    for (const skuCode of skuCodes) {
+      const stock = await getFaultyStock(user?.branchId, skuCode.id, isAdmin);
+      if (stock > 0) {
+        stockArr.push({ skuCode, faulty: stock });
+      }
+    }
+
+    res.send(stockArr);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -135,4 +170,5 @@ export default {
   faultyAction,
   report,
   headFaulty,
+  ownFaulty,
 };

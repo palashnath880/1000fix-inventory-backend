@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBranchDefective = exports.engineerStockBySkuId = exports.branchStockBySkuId = void 0;
+exports.getBranchDefective = exports.engineerStockBySkuId = exports.branchStockBySkuId = exports.getFaultyStock = void 0;
 const server_1 = require("../server");
 // get average price by sku id
 const getAvgPrice = (skuId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -200,6 +200,7 @@ const getFaultyStock = (branchId, skuId, isAdmin) => __awaiter(void 0, void 0, v
         throw new Error(err);
     }
 });
+exports.getFaultyStock = getFaultyStock;
 // get branch stock by sku id
 const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d, _e, _f, _g, _h;
@@ -279,7 +280,7 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         const avgPrice = yield getAvgPrice(skuId);
         const sellQuantity = yield getSellQuantity(branchId, skuId);
         const defective = yield getBranchDefective(branchId, skuId);
-        const faulty = yield getFaultyStock(branchId, skuId);
+        const faulty = yield (0, exports.getFaultyStock)(branchId, skuId);
         const result = {
             skuCode,
             avgPrice,

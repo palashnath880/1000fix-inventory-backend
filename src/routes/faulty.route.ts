@@ -12,7 +12,10 @@ faultyRouter.get(`/report`, faultyController.report);
 // update action
 faultyRouter.put(`/:id`, faultyController.faultyAction);
 
-//  get
+// get
 faultyRouter.get(`/head-faulty`, faultyController.headFaulty);
+
+// own faulty
+faultyRouter.get(`/own-stock`, faultyController.ownFaulty);
 
 export default faultyRouter;

@@ -150,7 +150,7 @@ const getBranchDefective = async (branchId: string, skuId: string) => {
 };
 
 // get branch faulty stock
-const getFaultyStock = async (
+export const getFaultyStock = async (
   branchId: string,
   skuId: string,
   isAdmin?: boolean

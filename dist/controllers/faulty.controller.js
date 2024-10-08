@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = require("../server");
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
+const stock_utils_1 = require("../utils/stock.utils");
 // send faulty to csc head
 const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
@@ -80,6 +81,7 @@ const report = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if ((user === null || user === void 0 ? void 0 : user.role) === "manager") {
             const result = yield server_1.prisma.faulty.findMany({
                 where: {
+                    branchId: branchId,
                     createdAt: {
                         gte: fromDate,
                         lte: toDate,
@@ -105,6 +107,7 @@ const report = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             },
             include: {
+                branch: true,
                 skuCode: {
                     include: {
                         item: { include: { model: { include: { category: true } } } },
@@ -112,7 +115,34 @@ const report = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             },
         });
-        return res.send(result);
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// own faulty stock
+const ownFaulty = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const skuId = req.query.skuId;
+        const user = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user;
+        const isAdmin = (user === null || user === void 0 ? void 0 : user.role) === "admin";
+        const stockArr = [];
+        const skuCodes = yield server_1.prisma.skuCode.findMany({
+            where: skuId ? { id: skuId } : {},
+            orderBy: [{ item: { model: { category: { name: "asc" } } } }],
+            include: {
+                item: { include: { model: { include: { category: true } } } },
+            },
+        });
+        for (const skuCode of skuCodes) {
+            const stock = yield (0, stock_utils_1.getFaultyStock)(user === null || user === void 0 ? void 0 : user.branchId, skuCode.id, isAdmin);
+            if (stock > 0) {
+                stockArr.push({ skuCode, faulty: stock });
+            }
+        }
+        res.send(stockArr);
     }
     catch (err) {
         res.status(400).send(err);
@@ -123,4 +153,5 @@ exports.default = {
     faultyAction,
     report,
     headFaulty,
+    ownFaulty,
 };
