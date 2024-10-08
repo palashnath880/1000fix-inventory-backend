@@ -10,4 +10,6 @@ const jobRouter = (0, express_1.Router)();
 jobRouter.post(`/`, job_controller_1.default.create);
 // job list route
 jobRouter.get(`/list`, job_controller_1.default.jobList);
+// job summary route
+jobRouter.get(`/summary`, job_controller_1.default.jobSummaryList);
 exports.default = jobRouter;

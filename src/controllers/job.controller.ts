@@ -45,6 +45,7 @@ const create = async (req: Request<{}, {}, JobType>, res: Response) => {
   }
 };
 
+// job list
 const jobList = async (
   req: Request<
     { id: string },
@@ -110,4 +111,52 @@ const jobList = async (
   }
 };
 
-export default { create, jobList };
+// job summary report
+const jobSummaryList = async (
+  req: Request<
+    {},
+    {},
+    {},
+    {
+      fromDate: string;
+      toDate: string;
+    }
+  >,
+  res: Response
+) => {
+  try {
+    let fromDate: any = req.query.fromDate;
+    fromDate = fromDate
+      ? new Date(fromDate)
+      : new Date(moment().tz("Asia/Dhaka").format("YYYY-MM-DD"));
+
+    let toDate: any = req.query.toDate;
+    toDate = toDate
+      ? new Date(moment(toDate).add(1, "days").format("YYYY-MM-DD"))
+      : new Date(moment.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
+
+    // get job entry summary list
+    const result = await prisma.jobItem.findMany({
+      where: {
+        createdAt: {
+          gte: fromDate,
+          lte: toDate,
+        },
+      },
+      include: {
+        skuCode: {
+          include: {
+            item: { include: { model: { include: { category: true } } } },
+          },
+        },
+      },
+    });
+
+    res.send(result);
+  } catch (err) {
+    console.log(err);
+    res.status(400).send(err);
+  }
+};
+
+export default { create, jobList, jobSummaryList };

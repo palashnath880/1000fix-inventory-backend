@@ -39,6 +39,7 @@ const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
+// job list
 const jobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
@@ -90,4 +91,38 @@ const jobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
-exports.default = { create, jobList };
+// job summary report
+const jobSummaryList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let fromDate = req.query.fromDate;
+        fromDate = fromDate
+            ? new Date(fromDate)
+            : new Date((0, moment_timezone_1.default)().tz("Asia/Dhaka").format("YYYY-MM-DD"));
+        let toDate = req.query.toDate;
+        toDate = toDate
+            ? new Date((0, moment_timezone_1.default)(toDate).add(1, "days").format("YYYY-MM-DD"))
+            : new Date(moment_timezone_1.default.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
+        // get job entry summary list
+        const result = yield server_1.prisma.jobItem.findMany({
+            where: {
+                createdAt: {
+                    gte: fromDate,
+                    lte: toDate,
+                },
+            },
+            include: {
+                skuCode: {
+                    include: {
+                        item: { include: { model: { include: { category: true } } } },
+                    },
+                },
+            },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(400).send(err);
+    }
+});
+exports.default = { create, jobList, jobSummaryList };
