@@ -255,27 +255,14 @@ const receiveReport = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 createdAt: { gte: from, lte: to },
                 status: { in: ["received", "rejected"] },
             },
-            select: {
-                quantity: true,
-                createdAt: true,
-                receiverId: true,
-                receiver: {
-                    select: {
-                        name: true,
-                    },
-                },
+            include: {
+                sender: true,
                 skuCode: {
-                    select: {
-                        name: true,
+                    include: {
                         item: {
-                            select: {
-                                name: true,
-                                uom: true,
+                            include: {
                                 model: {
-                                    select: {
-                                        name: true,
-                                        category: { select: { name: true } },
-                                    },
+                                    include: { category: true },
                                 },
                             },
                         },
