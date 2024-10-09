@@ -163,7 +163,7 @@ const ownStock = async (
 
     for (const skuId of skuCodes) {
       const stock = await engineerStockBySkuId(userId, skuId.id);
-      if (stock.quantity) {
+      if (stock.quantity > 0 || stock.defective > 0) {
         stock && stockArr.push(stock);
       }
     }

@@ -135,7 +135,7 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         for (const skuId of skuCodes) {
             const stock = yield (0, stock_utils_1.engineerStockBySkuId)(userId, skuId.id);
-            if (stock.quantity) {
+            if (stock.quantity > 0 || stock.defective > 0) {
                 stock && stockArr.push(stock);
             }
         }
