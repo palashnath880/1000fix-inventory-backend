@@ -14,6 +14,7 @@ import challanRouter from "./challan.route";
 import reportRouter from "./report.route";
 import scrapRouter from "./scrap.route";
 import faultyRouter from "./faulty.route";
+import uomRouter from "./uom.route";
 
 const routes = Router();
 
@@ -58,5 +59,8 @@ routes.use("/scrap", verifyAuthToken, scrapRouter);
 
 // faulty
 routes.use("/faulty", verifyAuthToken, faultyRouter);
+
+// uom
+routes.use("/uom", verifyAuthToken, uomRouter);
 
 export default routes;

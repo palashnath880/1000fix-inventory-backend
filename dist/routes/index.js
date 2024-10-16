@@ -19,6 +19,7 @@ const challan_route_1 = __importDefault(require("./challan.route"));
 const report_route_1 = __importDefault(require("./report.route"));
 const scrap_route_1 = __importDefault(require("./scrap.route"));
 const faulty_route_1 = __importDefault(require("./faulty.route"));
+const uom_route_1 = __importDefault(require("./uom.route"));
 const routes = (0, express_1.Router)();
 // auth route
 routes.use("/auth", auth_route_1.default);
@@ -48,4 +49,6 @@ routes.use("/report", verifyToken_1.verifyAuthToken, report_route_1.default);
 routes.use("/scrap", verifyToken_1.verifyAuthToken, scrap_route_1.default);
 // faulty
 routes.use("/faulty", verifyToken_1.verifyAuthToken, faulty_route_1.default);
+// uom
+routes.use("/uom", verifyToken_1.verifyAuthToken, uom_route_1.default);
 exports.default = routes;
