@@ -34,7 +34,7 @@ const getAll = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             where: {},
             orderBy: { name: "asc" },
         });
-        return result;
+        res.send(result);
     }
     catch (err) {
         res.status(400).send(err);
@@ -46,7 +46,7 @@ const deleteUOM = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const id = req.params.id;
         // delete uom item
         const result = yield server_1.prisma.uom.delete({ where: { id } });
-        return result;
+        res.send(result);
     }
     catch (err) {
         res.status(400).send(err);

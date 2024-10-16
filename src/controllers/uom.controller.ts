@@ -30,7 +30,7 @@ const getAll = async (req: Request, res: Response) => {
       where: {},
       orderBy: { name: "asc" },
     });
-    return result;
+    res.send(result);
   } catch (err) {
     res.status(400).send(err);
   }
@@ -43,7 +43,7 @@ const deleteUOM = async (req: Request<{ id: string }>, res: Response) => {
 
     // delete uom item
     const result = await prisma.uom.delete({ where: { id } });
-    return result;
+    res.send(result);
   } catch (err) {
     res.status(400).send(err);
   }
