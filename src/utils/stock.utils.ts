@@ -133,13 +133,25 @@ const getBranchDefective = async (branchId: string, skuId: string) => {
       },
     });
 
+    // get engineer send defective
+    const enSend = await prisma.engineerStock.aggregate({
+      _sum: { quantity: true },
+      where: {
+        branchId: branchId,
+        skuCodeId: skuId,
+        type: "defective",
+        status: "received",
+      },
+    });
+
     // defective quantity
     if (defective?._sum?.quantity) quantity += defective._sum.quantity;
     // send defective
     if (send?._sum?.quantity) quantity -= send._sum.quantity;
     // receive defective
     if (receive?._sum?.quantity) quantity += receive._sum.quantity;
-
+    // engineer send defective
+    if (enSend?._sum?.quantity) quantity += enSend._sum.quantity;
     // scrap quantity
     if (scrap?._sum?.quantity) quantity -= scrap._sum.quantity;
 

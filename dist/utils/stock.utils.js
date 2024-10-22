@@ -87,7 +87,7 @@ const getSellQuantity = (branchId, skuId) => __awaiter(void 0, void 0, void 0, f
 });
 // get branch defective
 const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     try {
         let quantity = 0;
         // get generate defective quantity
@@ -134,6 +134,16 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
                 scrap: { branchId: branchId, from: "defective" },
             },
         });
+        // get engineer send defective
+        const enSend = yield server_1.prisma.engineerStock.aggregate({
+            _sum: { quantity: true },
+            where: {
+                branchId: branchId,
+                skuCodeId: skuId,
+                type: "defective",
+                status: "received",
+            },
+        });
         // defective quantity
         if ((_a = defective === null || defective === void 0 ? void 0 : defective._sum) === null || _a === void 0 ? void 0 : _a.quantity)
             quantity += defective._sum.quantity;
@@ -143,8 +153,11 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         // receive defective
         if ((_c = receive === null || receive === void 0 ? void 0 : receive._sum) === null || _c === void 0 ? void 0 : _c.quantity)
             quantity += receive._sum.quantity;
+        // engineer send defective
+        if ((_d = enSend === null || enSend === void 0 ? void 0 : enSend._sum) === null || _d === void 0 ? void 0 : _d.quantity)
+            quantity += enSend._sum.quantity;
         // scrap quantity
-        if ((_d = scrap === null || scrap === void 0 ? void 0 : scrap._sum) === null || _d === void 0 ? void 0 : _d.quantity)
+        if ((_e = scrap === null || scrap === void 0 ? void 0 : scrap._sum) === null || _e === void 0 ? void 0 : _e.quantity)
             quantity -= scrap._sum.quantity;
         return quantity;
     }
