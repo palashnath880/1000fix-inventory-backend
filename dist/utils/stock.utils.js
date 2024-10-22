@@ -272,7 +272,12 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         // engineer return
         const enReturn = yield server_1.prisma.engineerStock.aggregate({
             _sum: { quantity: true },
-            where: { skuCodeId: skuId, type: "return", branchId: branchId },
+            where: {
+                skuCodeId: skuId,
+                type: "return",
+                branchId: branchId,
+                status: "received",
+            },
         });
         if ((_h = enReturn === null || enReturn === void 0 ? void 0 : enReturn._sum) === null || _h === void 0 ? void 0 : _h.quantity)
             quantity += enReturn._sum.quantity;

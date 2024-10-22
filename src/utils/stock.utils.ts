@@ -270,7 +270,12 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
     // engineer return
     const enReturn = await prisma.engineerStock.aggregate({
       _sum: { quantity: true },
-      where: { skuCodeId: skuId, type: "return", branchId: branchId },
+      where: {
+        skuCodeId: skuId,
+        type: "return",
+        branchId: branchId,
+        status: "received",
+      },
     });
     if (enReturn?._sum?.quantity) quantity += enReturn._sum.quantity;
 
