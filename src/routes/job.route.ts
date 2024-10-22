@@ -12,4 +12,7 @@ jobRouter.get(`/list`, jobController.jobList);
 // job summary route
 jobRouter.get(`/summary`, jobController.jobSummaryList);
 
+// job graph route
+jobRouter.get(`/graph`, jobController.jobEntryGraph);
+
 export default jobRouter;

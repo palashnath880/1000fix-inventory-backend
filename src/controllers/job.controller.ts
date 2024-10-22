@@ -19,6 +19,7 @@ type JobType = {
   items: JobItem[];
 };
 
+// create job
 const create = async (req: Request<{}, {}, JobType>, res: Response) => {
   try {
     const newJob = req.body;
@@ -159,4 +160,50 @@ const jobSummaryList = async (
   }
 };
 
-export default { create, jobList, jobSummaryList };
+// get job entry graph by month
+const jobEntryGraph = async (
+  req: Request<{}, {}, {}, { month: string }>,
+  res: Response
+) => {
+  try {
+    const branchId = req.cookies?.user?.branchId;
+    const month = req.query.month;
+    const start = new Date();
+    start.setMonth(parseInt(month) - 1);
+    start.setDate(1);
+    const end = new Date();
+    end.setMonth(parseInt(month));
+    end.setDate(1);
+
+    const result: any = {};
+    const rows = await prisma.jobItem.groupBy({
+      _sum: { quantity: true },
+      by: ["createdAt"],
+      where: {
+        createdAt: {
+          gte: start,
+          lte: end,
+        },
+        job: {
+          branchId: branchId,
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+    for (const row of rows) {
+      const date = new Date(row.createdAt);
+      const day = date.getDate();
+      if (result[day]) {
+        result[day] += row._sum.quantity;
+      } else {
+        result[day] = row._sum.quantity;
+      }
+    }
+
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+export default { create, jobList, jobSummaryList, jobEntryGraph };

@@ -12,4 +12,6 @@ jobRouter.post(`/`, job_controller_1.default.create);
 jobRouter.get(`/list`, job_controller_1.default.jobList);
 // job summary route
 jobRouter.get(`/summary`, job_controller_1.default.jobSummaryList);
+// job graph route
+jobRouter.get(`/graph`, job_controller_1.default.jobEntryGraph);
 exports.default = jobRouter;

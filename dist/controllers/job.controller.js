@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = require("../server");
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
+// create job
 const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
@@ -125,4 +126,47 @@ const jobSummaryList = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(400).send(err);
     }
 });
-exports.default = { create, jobList, jobSummaryList };
+// get job entry graph by month
+const jobEntryGraph = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const month = req.query.month;
+        const start = new Date();
+        start.setMonth(parseInt(month) - 1);
+        start.setDate(1);
+        const end = new Date();
+        end.setMonth(parseInt(month));
+        end.setDate(1);
+        const result = {};
+        const rows = yield server_1.prisma.jobItem.groupBy({
+            _sum: { quantity: true },
+            by: ["createdAt"],
+            where: {
+                createdAt: {
+                    gte: start,
+                    lte: end,
+                },
+                job: {
+                    branchId: branchId,
+                },
+            },
+            orderBy: { createdAt: "asc" },
+        });
+        for (const row of rows) {
+            const date = new Date(row.createdAt);
+            const day = date.getDate();
+            if (result[day]) {
+                result[day] += row._sum.quantity;
+            }
+            else {
+                result[day] = row._sum.quantity;
+            }
+        }
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+exports.default = { create, jobList, jobSummaryList, jobEntryGraph };
