@@ -82,12 +82,13 @@ const entryList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 // own stock
 const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g;
     try {
         const branchId = (_b = (_a = req === null || req === void 0 ? void 0 : req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
         const category = (_c = req === null || req === void 0 ? void 0 : req.query) === null || _c === void 0 ? void 0 : _c.category;
         const model = (_d = req === null || req === void 0 ? void 0 : req.query) === null || _d === void 0 ? void 0 : _d.model;
         const skuCode = (_e = req === null || req === void 0 ? void 0 : req.query) === null || _e === void 0 ? void 0 : _e.skuCode;
+        const isAdmin = ((_g = (_f = req === null || req === void 0 ? void 0 : req.cookies) === null || _f === void 0 ? void 0 : _f.user) === null || _g === void 0 ? void 0 : _g.role) === "admin";
         const stockArr = [];
         const skuCodes = yield server_1.prisma.skuCode.findMany({
             where: skuCode
@@ -102,7 +103,7 @@ const ownStock = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         for (const skuId of skuCodes) {
-            const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, skuId.id);
+            const stock = yield (0, stock_utils_1.branchStockBySkuId)(branchId, skuId.id, isAdmin);
             if (stock.faulty || stock.quantity || stock.defective) {
                 stock && stockArr.push(stock);
             }

@@ -122,6 +122,7 @@ const ownStock = async (
     const category = req?.query?.category;
     const model = req?.query?.model;
     const skuCode = req?.query?.skuCode;
+    const isAdmin = req?.cookies?.user?.role === "admin";
 
     const stockArr: any[] = [];
     const skuCodes = await prisma.skuCode.findMany({
@@ -138,7 +139,7 @@ const ownStock = async (
     });
 
     for (const skuId of skuCodes) {
-      const stock = await branchStockBySkuId(branchId, skuId.id);
+      const stock = await branchStockBySkuId(branchId, skuId.id, isAdmin);
       if (stock.faulty || stock.quantity || stock.defective) {
         stock && stockArr.push(stock);
       }

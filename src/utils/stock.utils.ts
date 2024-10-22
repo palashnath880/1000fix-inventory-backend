@@ -200,7 +200,11 @@ export const getFaultyStock = async (
 };
 
 // get branch stock by sku id
-const branchStockBySkuId = async (branchId: string, skuId: string) => {
+const branchStockBySkuId = async (
+  branchId: string,
+  skuId: string,
+  isAdmin: boolean = false
+) => {
   try {
     let quantity: number = 0;
 
@@ -283,7 +287,7 @@ const branchStockBySkuId = async (branchId: string, skuId: string) => {
     const avgPrice = await getAvgPrice(skuId);
     const sellQuantity = await getSellQuantity(branchId, skuId);
     const defective = await getBranchDefective(branchId, skuId);
-    const faulty = await getFaultyStock(branchId, skuId);
+    const faulty = await getFaultyStock(branchId, skuId, isAdmin);
 
     const result: any = {
       skuCode,

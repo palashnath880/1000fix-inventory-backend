@@ -202,7 +202,7 @@ const getFaultyStock = (branchId, skuId, isAdmin) => __awaiter(void 0, void 0, v
 });
 exports.getFaultyStock = getFaultyStock;
 // get branch stock by sku id
-const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
+const branchStockBySkuId = (branchId_1, skuId_1, ...args_1) => __awaiter(void 0, [branchId_1, skuId_1, ...args_1], void 0, function* (branchId, skuId, isAdmin = false) {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     try {
         let quantity = 0;
@@ -285,7 +285,7 @@ const branchStockBySkuId = (branchId, skuId) => __awaiter(void 0, void 0, void 0
         const avgPrice = yield getAvgPrice(skuId);
         const sellQuantity = yield getSellQuantity(branchId, skuId);
         const defective = yield getBranchDefective(branchId, skuId);
-        const faulty = yield (0, exports.getFaultyStock)(branchId, skuId);
+        const faulty = yield (0, exports.getFaultyStock)(branchId, skuId, isAdmin);
         const result = {
             skuCode,
             avgPrice,
