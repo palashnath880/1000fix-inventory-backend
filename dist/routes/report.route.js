@@ -10,4 +10,6 @@ const reportRouter = (0, express_1.Router)();
 reportRouter.get(`/scrap`, report_controller_1.default.scrap);
 // engineer good and faulty return report
 reportRouter.get(`/en-return-report/:type`, report_controller_1.default.enReRepByBranch);
+// engineer good and faulty return report
+reportRouter.get(`/aging`, report_controller_1.default.agingReport);
 exports.default = reportRouter;

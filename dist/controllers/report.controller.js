@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
 const server_1 = require("../server");
+const report_utils_1 = require("../utils/report.utils");
+const stock_utils_1 = require("../utils/stock.utils");
 // scrap report
 const scrap = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -72,4 +74,35 @@ const enReRepByBranch = (req, res) => __awaiter(void 0, void 0, void 0, function
         res.status(400).send(err);
     }
 });
-exports.default = { scrap, enReRepByBranch };
+// get aging report
+const agingReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    try {
+        const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
+        const isAdmin = ((_d = (_c = req === null || req === void 0 ? void 0 : req.cookies) === null || _c === void 0 ? void 0 : _c.user) === null || _d === void 0 ? void 0 : _d.role) === "admin";
+        const skuId = req.query.skuId;
+        const arr = [];
+        if (skuId) {
+            const report = yield (0, report_utils_1.agingReportBySku)(branchId, skuId, isAdmin);
+            const skuCode = yield (0, stock_utils_1.getSku)(skuId);
+            if (report) {
+                arr.push({ skuCode, report });
+            }
+        }
+        else {
+            const skuCodes = yield server_1.prisma.skuCode.findMany({ select: { id: true } });
+            for (const sku of skuCodes) {
+                const report = yield (0, report_utils_1.agingReportBySku)(branchId, sku.id, isAdmin);
+                const skuCode = yield (0, stock_utils_1.getSku)(sku.id);
+                if (report) {
+                    arr.push({ skuCode, report });
+                }
+            }
+        }
+        res.send(arr);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+exports.default = { scrap, enReRepByBranch, agingReport };

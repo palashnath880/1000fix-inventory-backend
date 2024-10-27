@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBranchDefective = exports.engineerStockBySkuId = exports.branchStockBySkuId = exports.getFaultyStock = void 0;
+exports.getSku = exports.getBranchDefective = exports.engineerStockBySkuId = exports.branchStockBySkuId = exports.getFaultyStock = void 0;
 const server_1 = require("../server");
 // get average price by sku id
 const getAvgPrice = (skuId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -69,6 +69,7 @@ const getSku = (skuId) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error(err);
     }
 });
+exports.getSku = getSku;
 // get sell quantity
 const getSellQuantity = (branchId, skuId) => __awaiter(void 0, void 0, void 0, function* () {
     try {

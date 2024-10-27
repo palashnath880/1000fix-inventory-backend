@@ -393,4 +393,4 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
   }
 };
 
-export { branchStockBySkuId, engineerStockBySkuId, getBranchDefective };
+export { branchStockBySkuId, engineerStockBySkuId, getBranchDefective, getSku };
