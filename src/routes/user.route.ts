@@ -12,6 +12,9 @@ userRouter.get(`/`, userController.get);
 // get by  id
 userRouter.get(`/:userId`, userController.getById);
 
+// update pwd by admin
+userRouter.put(`/update-pwd`, userController.updatePwd);
+
 // put route
 userRouter.put(`/:userId`, userController.update);
 

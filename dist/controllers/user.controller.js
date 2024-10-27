@@ -106,4 +106,21 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.send(err).status(400);
     }
 });
-exports.default = { create, deleteUser, update, get, getById };
+// update user password by admin
+const updatePwd = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.body.id;
+        const password = req.body.password;
+        const hashedPwd = yield (0, user_utils_1.hashPassword)(password);
+        // update pwd
+        const result = yield server_1.prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPwd },
+        });
+        res.send(result);
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+exports.default = { create, deleteUser, update, get, getById, updatePwd };

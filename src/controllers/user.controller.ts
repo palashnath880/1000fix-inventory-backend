@@ -130,4 +130,25 @@ const deleteUser = async (req: Request<{ userId: string }>, res: Response) => {
   }
 };
 
-export default { create, deleteUser, update, get, getById };
+// update user password by admin
+const updatePwd = async (
+  req: Request<{}, {}, { id: string; password: string }>,
+  res: Response
+) => {
+  try {
+    const userId = req.body.id;
+    const password = req.body.password;
+    const hashedPwd = await hashPassword(password);
+
+    // update pwd
+    const result = await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPwd },
+    });
+    res.send(result);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+export default { create, deleteUser, update, get, getById, updatePwd };

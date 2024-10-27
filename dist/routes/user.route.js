@@ -12,6 +12,8 @@ userRouter.post(`/`, user_controller_1.default.create);
 userRouter.get(`/`, user_controller_1.default.get);
 // get by  id
 userRouter.get(`/:userId`, user_controller_1.default.getById);
+// update pwd by admin
+userRouter.put(`/update-pwd`, user_controller_1.default.updatePwd);
 // put route
 userRouter.put(`/:userId`, user_controller_1.default.update);
 // delete route
