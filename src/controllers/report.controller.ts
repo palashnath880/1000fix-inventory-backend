@@ -92,7 +92,7 @@ const agingReport = async (
       const report = await agingReportBySku(branchId, skuId, isAdmin);
       const skuCode = await getSku(skuId);
       if (report) {
-        arr.push({ skuCode, report });
+        arr.push({ skuCode, ...report });
       }
     } else {
       const skuCodes = await prisma.skuCode.findMany({ select: { id: true } });
@@ -100,7 +100,7 @@ const agingReport = async (
         const report = await agingReportBySku(branchId, sku.id, isAdmin);
         const skuCode = await getSku(sku.id);
         if (report) {
-          arr.push({ skuCode, report });
+          arr.push({ skuCode, ...report });
         }
       }
     }

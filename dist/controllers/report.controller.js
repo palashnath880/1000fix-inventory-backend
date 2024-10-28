@@ -86,7 +86,7 @@ const agingReport = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             const report = yield (0, report_utils_1.agingReportBySku)(branchId, skuId, isAdmin);
             const skuCode = yield (0, stock_utils_1.getSku)(skuId);
             if (report) {
-                arr.push({ skuCode, report });
+                arr.push(Object.assign({ skuCode }, report));
             }
         }
         else {
@@ -95,7 +95,7 @@ const agingReport = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 const report = yield (0, report_utils_1.agingReportBySku)(branchId, sku.id, isAdmin);
                 const skuCode = yield (0, stock_utils_1.getSku)(sku.id);
                 if (report) {
-                    arr.push({ skuCode, report });
+                    arr.push(Object.assign({ skuCode }, report));
                 }
             }
         }
