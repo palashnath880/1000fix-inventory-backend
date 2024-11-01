@@ -77,6 +77,7 @@ model User{
   branchId  String?
   jobs      Job[]
   stocks    EngineerStock[]
+  resetPwd  ResetPwd[]
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
@@ -273,6 +274,21 @@ model Faulty {
   skuCode    SkuCode? @relation(fields: [skuCodeId],references: [id])
   skuCodeId  String?
   endAt      DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) 
+}
+
+enum ResetPwdStatus {
+  open
+  close
+}
+
+model ResetPwd {
+  id         String   @id @default(uuid())
+  jwtToken   String   @db.Text
+  user       User  @relation(fields: [userId], references: [id])
+  userId     String
+  status     ResetPwdStatus @default(open)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) 
 }

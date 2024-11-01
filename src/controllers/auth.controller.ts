@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
 import { compare } from "bcrypt";
-import { sign } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 import { hashPassword } from "../utils/user.utils";
+import { send_reset_email } from "../utils/mail.utils";
 
 // login
 const login = async (
@@ -15,30 +16,23 @@ const login = async (
     const SECRET_KEY: string = process.env.JWT_SECRET_KEY || "";
 
     // get user
-    const getUsers = await prisma.user.findMany({
+    const user = await prisma.user.findFirst({
       where: {
         OR: [{ email: login }, { username: login }],
       },
-      take: 1,
     });
-    if (getUsers && getUsers?.length > 0) {
-      const user = getUsers[0];
-      if (await compare(password, user.password)) {
-        const getUser = await prisma.user.findUnique({
-          where: { id: user.id },
-        });
-        if (getUser) {
-          // generate jwt token
-          const token = await sign(getUser, SECRET_KEY, {
-            expiresIn: 60 * 60 * 24 * 7,
-          });
-          res.send({ token });
-        }
-      } else {
-        return res.status(401).send({ message: "Incorrect password" });
-      }
+
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    if (await compare(password, user.password)) {
+      const token = await sign(user, SECRET_KEY, {
+        expiresIn: 60 * 60 * 24 * 7,
+      });
+      res.send({ token });
     } else {
-      return res.status(409).send({ message: "User not found" });
+      return res.status(401).send({ message: "Incorrect password" });
     }
   } catch (err) {
     res.status(400).send(err);
@@ -69,13 +63,91 @@ const loadUser = async (req: Request, res: Response) => {
   }
 };
 
-const sendPasswordResetLink = async (req: Request, res: Response) => {
+// send reset password link
+const sendPwdResetLink = async (
+  req: Request<{}, {}, { login: string }>,
+  res: Response
+) => {
   try {
+    const login = req.body.login;
+    const SECRET_KEY: string = process.env.JWT_SECRET_KEY || "";
+    const FRONTEND_URL: string = process.env.FRONTEND_URL || "";
+
+    // get user by email or username
+    const getUser = await prisma.user.findFirst({
+      where: { OR: [{ username: login }, { email: login }] },
+    });
+    if (!getUser) {
+      return res.status(404).send({ message: `User not found.` });
+    }
+
+    const token = await sign(getUser, SECRET_KEY, {
+      expiresIn: 60 * 60 * 1,
+    });
+
+    // insert the database
+    const resetRes = await prisma.resetPwd.create({
+      data: { jwtToken: token, userId: getUser.id },
+    });
+
+    const url = `${FRONTEND_URL}/update-pwd/?tokenId=${resetRes.id}`;
+
+    const sentEmail: any = await send_reset_email(
+      url,
+      getUser.username,
+      getUser.email
+    );
+    if (sentEmail) {
+      return res.send({ message: `link sent` });
+    } else {
+      return res.status(400).send({ message: `link doesn't sent` });
+    }
   } catch (err) {
     res.status(400).send(err);
   }
 };
 
+// update reset password
+const updateResetPass = async (
+  req: Request<{}, {}, { password: string; tokenId: string }>,
+  res: Response
+) => {
+  try {
+    const id = req.body.tokenId;
+    const password = req.body.password;
+    const SECRET_KEY: string = process.env.JWT_SECRET_KEY || "";
+
+    const result = await prisma.resetPwd.findUnique({
+      where: { id, status: "open" },
+    });
+    if (!result) return res.status(404).send({ message: `Invalid token` });
+    const token = result.jwtToken;
+
+    const decoded = await verify(token, SECRET_KEY);
+
+    if (decoded) {
+      const hashPwd = await hashPassword(password);
+      // update user pass
+      await prisma.user.update({
+        data: { password: hashPwd },
+        where: { id: result.userId },
+      });
+
+      await prisma.resetPwd.update({
+        data: { status: "close" },
+        where: { id },
+      });
+      return res.send({ message: `password updated` });
+    }
+
+    return res.status(400).send({ message: `Invalid token` });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send(err);
+  }
+};
+
+// change password
 const changePassword = async (
   req: Request<{}, {}, { prev: string; new: string }>,
   res: Response
@@ -108,4 +180,10 @@ const changePassword = async (
   }
 };
 
-export default { login, loadUser, sendPasswordResetLink, changePassword };
+export default {
+  login,
+  loadUser,
+  sendPwdResetLink,
+  changePassword,
+  updateResetPass,
+};

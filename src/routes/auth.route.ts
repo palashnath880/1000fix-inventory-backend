@@ -17,4 +17,10 @@ authRouter.post(
   authController.changePassword
 );
 
+// update reset password
+authRouter.post(`/update-reset-pwd`, authController.updateResetPass);
+
+// send reset link
+authRouter.post(`/send-reset-link`, authController.sendPwdResetLink);
+
 export default authRouter;

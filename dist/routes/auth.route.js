@@ -13,4 +13,8 @@ authRouter.post(`/login`, auth_controller_1.default.login);
 authRouter.post(`/user`, verifyToken_1.verifyAuthToken, auth_controller_1.default.loadUser);
 // change password route
 authRouter.post(`/change-password`, verifyToken_1.verifyAuthToken, auth_controller_1.default.changePassword);
+// update reset password
+authRouter.post(`/update-reset-pwd`, auth_controller_1.default.updateResetPass);
+// send reset link
+authRouter.post(`/send-reset-link`, auth_controller_1.default.sendPwdResetLink);
 exports.default = authRouter;
