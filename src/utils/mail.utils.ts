@@ -5,7 +5,7 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false,
   from: "1000FiX Services LTD.",
-  auth: { user: "palashnath880@gmail.com", pass: "zcxfmpqltyhbynmz" },
+  auth: { user: process.env.SMTP_EMAIL, pass: process.env.SMTP_PASSWORD },
 });
 
 function mail_wrapper(content: any) {
