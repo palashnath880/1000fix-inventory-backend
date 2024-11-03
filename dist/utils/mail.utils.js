@@ -19,7 +19,7 @@ const transporter = nodemailer_1.default.createTransport({
     port: 587,
     secure: false,
     from: "1000FiX Services LTD.",
-    auth: { user: process.env.SMTP_EMAIL, pass: process.env.PASSWORD },
+    auth: { user: process.env.SMTP_EMAIL, pass: process.env.SMTP_PASSWORD },
 });
 function mail_wrapper(content) {
     return `
