@@ -27,5 +27,7 @@ export const isAuthenticate = async (
 
     req.cookies = { user: user };
     next();
-  } catch (err) {}
+  } catch (err) {
+    return res.status(401).send("Unauthorized");
+  }
 };

@@ -89,10 +89,10 @@ const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 branch: true,
             },
         });
-        res.send(getUser);
+        return res.send(getUser);
     }
     catch (err) {
-        res.send(err).status(400);
+        res.status(400).send(err);
     }
 });
 // get by id

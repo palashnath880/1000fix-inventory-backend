@@ -29,6 +29,8 @@ const isAuthenticate = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         req.cookies = { user: user };
         next();
     }
-    catch (err) { }
+    catch (err) {
+        return res.status(401).send("Unauthorized");
+    }
 });
 exports.isAuthenticate = isAuthenticate;

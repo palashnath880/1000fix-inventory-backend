@@ -107,9 +107,9 @@ const getMe = async (req: Request, res: Response) => {
         branch: true,
       },
     });
-    res.send(getUser);
+    return res.send(getUser);
   } catch (err) {
-    res.send(err).status(400);
+    res.status(400).send(err);
   }
 };
 
