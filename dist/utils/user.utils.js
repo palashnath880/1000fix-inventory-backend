@@ -45,7 +45,7 @@ const genAccessToken = (user) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const SECRET_KEY = process.env.JWT_SECRET_KEY || "";
         const token = yield (0, jsonwebtoken_1.sign)(user, SECRET_KEY, {
-            expiresIn: "15m",
+            expiresIn: "1m",
         });
         return token;
     }

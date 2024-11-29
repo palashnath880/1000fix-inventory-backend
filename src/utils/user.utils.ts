@@ -33,7 +33,7 @@ const genAccessToken = async (user: any) => {
   try {
     const SECRET_KEY: string = process.env.JWT_SECRET_KEY || "";
     const token = await sign(user, SECRET_KEY, {
-      expiresIn: "15m",
+      expiresIn: "1m",
     });
     return token;
   } catch (err: any) {

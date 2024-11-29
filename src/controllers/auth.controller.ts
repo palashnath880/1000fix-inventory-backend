@@ -170,12 +170,12 @@ const refreshToken = async (req: Request, res: Response) => {
     }
 
     const decoded: any = await verify(re_token, REFRESH_SECRET_KEY);
-    const ac_token = await genAccessToken(decoded);
     const user = await prisma.user.findUnique({
       where: { id: decoded?.id },
     });
+    const ac_token = await genAccessToken(user);
 
-    return res.header("Authorization", ac_token).send(user);
+    return res.send({ ac_token });
   } catch (err) {
     return res.status(400).send(err);
   }

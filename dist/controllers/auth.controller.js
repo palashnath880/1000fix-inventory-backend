@@ -143,11 +143,11 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             return res.status(401).send(`Access Denied. No refresh token provided.`);
         }
         const decoded = yield (0, jsonwebtoken_1.verify)(re_token, REFRESH_SECRET_KEY);
-        const ac_token = yield (0, user_utils_1.genAccessToken)(decoded);
         const user = yield server_1.prisma.user.findUnique({
             where: { id: decoded === null || decoded === void 0 ? void 0 : decoded.id },
         });
-        return res.header("Authorization", ac_token).send(user);
+        const ac_token = yield (0, user_utils_1.genAccessToken)(user);
+        return res.send({ ac_token });
     }
     catch (err) {
         return res.status(400).send(err);
