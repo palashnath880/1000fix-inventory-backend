@@ -165,7 +165,7 @@ const refreshToken = async (req: Request, res: Response) => {
     const REFRESH_SECRET_KEY: string = process.env.REFRESH_SECRET_KEY || "";
     const { re_token } = req.cookies;
 
-    console.log(re_token);
+    console.log(req.cookies);
 
     if (!re_token) {
       return res.status(401).send(`Access Denied. No refresh token provided.`);
