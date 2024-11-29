@@ -139,14 +139,17 @@ const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     try {
         const REFRESH_SECRET_KEY = process.env.REFRESH_SECRET_KEY || "";
         const { re_token } = req.cookies;
+        console.log(re_token);
         if (!re_token) {
             return res.status(401).send(`Access Denied. No refresh token provided.`);
         }
         const decoded = yield (0, jsonwebtoken_1.verify)(re_token, REFRESH_SECRET_KEY);
+        console.log(decoded);
         const user = yield server_1.prisma.user.findUnique({
             where: { id: decoded === null || decoded === void 0 ? void 0 : decoded.id },
         });
         const ac_token = yield (0, user_utils_1.genAccessToken)(user);
+        console.log(ac_token);
         return res.send({ ac_token });
     }
     catch (err) {
