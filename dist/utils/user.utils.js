@@ -9,9 +9,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hashPassword = exports.generateUsername = void 0;
+exports.genRefreshToken = exports.genAccessToken = exports.hashPassword = exports.generateUsername = void 0;
+const jsonwebtoken_1 = require("jsonwebtoken");
 const server_1 = require("../server");
 const bcrypt_1 = require("bcrypt");
+// generate a username based on the name
 const generateUsername = (name) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let username = name.toLowerCase();
@@ -31,9 +33,38 @@ const generateUsername = (name) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.generateUsername = generateUsername;
+// hash plain password
 const hashPassword = (plainPassword) => __awaiter(void 0, void 0, void 0, function* () {
     const salt = yield (0, bcrypt_1.genSalt)(10);
     const password = yield (0, bcrypt_1.hash)(plainPassword, salt);
     return password;
 });
 exports.hashPassword = hashPassword;
+// generate access token
+const genAccessToken = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const SECRET_KEY = process.env.JWT_SECRET_KEY || "";
+        const token = yield (0, jsonwebtoken_1.sign)(user, SECRET_KEY, {
+            expiresIn: "15m",
+        });
+        return token;
+    }
+    catch (err) {
+        throw new Error((err === null || err === void 0 ? void 0 : err.message) || "Unable to generate access token");
+    }
+});
+exports.genAccessToken = genAccessToken;
+// generate refresh token
+const genRefreshToken = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const REFRESH_SECRET_KEY = process.env.REFRESH_SECRET_KEY || "";
+        const token = yield (0, jsonwebtoken_1.sign)(user, REFRESH_SECRET_KEY, {
+            expiresIn: "7 days",
+        });
+        return token;
+    }
+    catch (err) {
+        throw new Error((err === null || err === void 0 ? void 0 : err.message) || "Unable to generate refresh token");
+    }
+});
+exports.genRefreshToken = genRefreshToken;

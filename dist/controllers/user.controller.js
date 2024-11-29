@@ -69,6 +69,33 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 // get by id
+const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = req.cookies.user;
+        const id = user === null || user === void 0 ? void 0 : user.id;
+        if (!id) {
+            return res.status(404).send({ message: `User not found` });
+        }
+        const getUser = yield server_1.prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                name: true,
+                branchId: true,
+                role: true,
+                createdAt: true,
+                branch: true,
+            },
+        });
+        res.send(getUser);
+    }
+    catch (err) {
+        res.send(err).status(400);
+    }
+});
+// get by id
 const getById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.params.userId;
@@ -123,4 +150,4 @@ const updatePwd = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
-exports.default = { create, deleteUser, update, get, getById, updatePwd };
+exports.default = { create, deleteUser, update, get, getById, updatePwd, getMe };

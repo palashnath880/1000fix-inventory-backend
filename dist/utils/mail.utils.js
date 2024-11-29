@@ -15,11 +15,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.send_reset_email = send_reset_email;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const transporter = nodemailer_1.default.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    from: "1000FiX Services LTD.",
-    auth: { user: process.env.SMTP_EMAIL, pass: process.env.SMTP_PASSWORD },
+    host: "sg1-ts102.a2hosting.com",
+    port: 465,
+    secure: true,
+    //   from: process.env.SMTP_EMAIL,
+    auth: {
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASSWORD,
+        // type: "login",
+    },
+    //   connectionTimeout: 10000,
 });
 function mail_wrapper(content) {
     return `

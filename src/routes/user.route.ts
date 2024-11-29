@@ -9,6 +9,9 @@ userRouter.post(`/`, userController.create);
 // get all route
 userRouter.get(`/`, userController.get);
 
+// get me
+userRouter.get(`/me`, userController.getMe);
+
 // get by  id
 userRouter.get(`/:userId`, userController.getById);
 

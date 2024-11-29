@@ -85,6 +85,35 @@ const get = async (
 };
 
 // get by id
+const getMe = async (req: Request, res: Response) => {
+  try {
+    const user = req.cookies.user;
+    const id = user?.id;
+
+    if (!id) {
+      return res.status(404).send({ message: `User not found` });
+    }
+
+    const getUser = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        name: true,
+        branchId: true,
+        role: true,
+        createdAt: true,
+        branch: true,
+      },
+    });
+    res.send(getUser);
+  } catch (err) {
+    res.send(err).status(400);
+  }
+};
+
+// get by id
 const getById = async (req: Request<{ userId: string }>, res: Response) => {
   try {
     const userId = req.params.userId;
@@ -151,4 +180,4 @@ const updatePwd = async (
   }
 };
 
-export default { create, deleteUser, update, get, getById, updatePwd };
+export default { create, deleteUser, update, get, getById, updatePwd, getMe };

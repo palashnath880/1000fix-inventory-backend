@@ -9,12 +9,12 @@ import skuRouter from "./skuCode.route";
 import stockRouter from "./stock.route";
 import jobRouter from "./job.route";
 import enStockRouter from "./engineerStock.route";
-import { verifyAuthToken } from "../middlewares/verifyToken";
 import challanRouter from "./challan.route";
 import reportRouter from "./report.route";
 import scrapRouter from "./scrap.route";
 import faultyRouter from "./faulty.route";
 import uomRouter from "./uom.route";
+import { isAuthenticate } from "../middleware";
 
 const routes = Router();
 
@@ -22,45 +22,45 @@ const routes = Router();
 routes.use("/auth", authRouter);
 
 // user route
-routes.use("/user", verifyAuthToken, userRouter);
+routes.use("/user", isAuthenticate, userRouter);
 
 // branch route
-routes.use("/branch", verifyAuthToken, branchRouter);
+routes.use("/branch", isAuthenticate, branchRouter);
 
 // category route
-routes.use("/category", verifyAuthToken, cateRouter);
+routes.use("/category", isAuthenticate, cateRouter);
 
 // model route
-routes.use("/model", verifyAuthToken, modelRouter);
+routes.use("/model", isAuthenticate, modelRouter);
 
 // item route
-routes.use("/item", verifyAuthToken, itemRouter);
+routes.use("/item", isAuthenticate, itemRouter);
 
 // item route
-routes.use("/sku-code", verifyAuthToken, skuRouter);
+routes.use("/sku-code", isAuthenticate, skuRouter);
 
 // stock route
-routes.use("/stock", verifyAuthToken, stockRouter);
+routes.use("/stock", isAuthenticate, stockRouter);
 
 // engineer stock route
-routes.use("/engineer-stock", verifyAuthToken, enStockRouter);
+routes.use("/engineer-stock", isAuthenticate, enStockRouter);
 
 // job route
-routes.use("/job", verifyAuthToken, jobRouter);
+routes.use("/job", isAuthenticate, jobRouter);
 
 // challan route
-routes.use("/challan", verifyAuthToken, challanRouter);
+routes.use("/challan", isAuthenticate, challanRouter);
 
 // report
-routes.use("/report", verifyAuthToken, reportRouter);
+routes.use("/report", isAuthenticate, reportRouter);
 
 // scrap
-routes.use("/scrap", verifyAuthToken, scrapRouter);
+routes.use("/scrap", isAuthenticate, scrapRouter);
 
 // faulty
-routes.use("/faulty", verifyAuthToken, faultyRouter);
+routes.use("/faulty", isAuthenticate, faultyRouter);
 
 // uom
-routes.use("/uom", verifyAuthToken, uomRouter);
+routes.use("/uom", isAuthenticate, uomRouter);
 
 export default routes;

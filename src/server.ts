@@ -3,24 +3,24 @@ import cors from "cors";
 import routes from "./routes";
 import { PrismaClient } from "@prisma/client";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import { hashPassword } from "./utils/user.utils";
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 const app = express();
-const CLIENT_URLS = process.env.CLIENT_URLS;
+const CLIENT_URL = process.env.CLIENT_URL;
 
 export const prisma = new PrismaClient();
 
 async function main() {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+  app.use(cookieParser());
 
-  const urls: string[] = CLIENT_URLS?.split(",") || [];
-  const origins = urls || "*";
+  const origins = CLIENT_URL || "*";
 
-  app.use(cors({ origin: origins }));
+  app.use(cors({ origin: origins, credentials: true }));
 
   app.use(routes);
 

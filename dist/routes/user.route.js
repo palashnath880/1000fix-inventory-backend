@@ -10,6 +10,8 @@ const userRouter = (0, express_1.Router)();
 userRouter.post(`/`, user_controller_1.default.create);
 // get all route
 userRouter.get(`/`, user_controller_1.default.get);
+// get me
+userRouter.get(`/me`, user_controller_1.default.getMe);
 // get by  id
 userRouter.get(`/:userId`, user_controller_1.default.getById);
 // update pwd by admin

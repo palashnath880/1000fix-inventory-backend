@@ -17,10 +17,8 @@ const mail_utils_1 = require("../utils/mail.utils");
 // login
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const login = req.body.login;
-        const password = req.body.password;
-        const SECRET_KEY = process.env.JWT_SECRET_KEY || "";
-        // get user
+        const { login, password } = req.body;
+        // find user by login user
         const user = yield server_1.prisma.user.findFirst({
             where: {
                 OR: [{ email: login }, { username: login }],
@@ -30,41 +28,16 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return res.status(404).send({ message: "User not found" });
         }
         if (yield (0, bcrypt_1.compare)(password, user.password)) {
-            const token = yield (0, jsonwebtoken_1.sign)(user, SECRET_KEY, {
-                expiresIn: 60 * 60 * 24 * 7,
-            });
-            res.send({ token });
+            const accessToken = yield (0, user_utils_1.genAccessToken)(user);
+            const refreshToken = yield (0, user_utils_1.genRefreshToken)(user);
+            return res.send({ ac_token: accessToken, re_token: refreshToken });
         }
         else {
-            return res.status(401).send({ message: "Incorrect password" });
+            return res.status(400).send({ message: "Incorrect password" });
         }
     }
     catch (err) {
-        res.status(400).send(err);
-    }
-});
-const loadUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
-    try {
-        const userId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
-        const user = yield server_1.prisma.user.findUnique({
-            where: { id: userId },
-            include: { branch: true },
-        });
-        if (user) {
-            const keys = Object.keys(user);
-            const newObj = {};
-            for (const key of keys) {
-                if (key !== "password") {
-                    newObj[key] = user[key];
-                }
-            }
-            return res.send(newObj);
-        }
-        res.send(user);
-    }
-    catch (err) {
-        res.status(400).send(err);
+        return res.status(400).send(err);
     }
 });
 // send reset password link
@@ -72,7 +45,7 @@ const sendPwdResetLink = (req, res) => __awaiter(void 0, void 0, void 0, functio
     try {
         const login = req.body.login;
         const SECRET_KEY = process.env.JWT_SECRET_KEY || "";
-        const FRONTEND_URL = process.env.FRONTEND_URL || "";
+        const CLIENT_URL = process.env.CLIENT_URL || "";
         // get user by email or username
         const getUser = yield server_1.prisma.user.findFirst({
             where: { OR: [{ username: login }, { email: login }] },
@@ -87,7 +60,7 @@ const sendPwdResetLink = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const resetRes = yield server_1.prisma.resetPwd.create({
             data: { jwtToken: token, userId: getUser.id },
         });
-        const url = `${FRONTEND_URL}/update-pwd/?tokenId=${resetRes.id}`;
+        const url = `${CLIENT_URL}/update-pwd/?tokenId=${resetRes.id}`;
         const sentEmail = yield (0, mail_utils_1.send_reset_email)(url, getUser.username, getUser.email);
         if (sentEmail) {
             return res.send({ message: `link sent` });
@@ -97,6 +70,7 @@ const sendPwdResetLink = (req, res) => __awaiter(void 0, void 0, void 0, functio
         }
     }
     catch (err) {
+        console.log(err);
         res.status(400).send(err);
     }
 });
@@ -160,10 +134,29 @@ const changePassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(400).send(err);
     }
 });
+// refresh token
+const refreshToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const REFRESH_SECRET_KEY = process.env.REFRESH_SECRET_KEY || "";
+        const { re_token } = req.cookies;
+        if (!re_token) {
+            return res.status(401).send(`Access Denied. No refresh token provided.`);
+        }
+        const decoded = yield (0, jsonwebtoken_1.verify)(re_token, REFRESH_SECRET_KEY);
+        const ac_token = yield (0, user_utils_1.genAccessToken)(decoded);
+        const user = yield server_1.prisma.user.findUnique({
+            where: { id: decoded === null || decoded === void 0 ? void 0 : decoded.id },
+        });
+        return res.header("Authorization", ac_token).send(user);
+    }
+    catch (err) {
+        return res.status(400).send(err);
+    }
+});
 exports.default = {
     login,
-    loadUser,
     sendPwdResetLink,
     changePassword,
     updateResetPass,
+    refreshToken,
 };

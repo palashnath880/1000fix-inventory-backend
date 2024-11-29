@@ -5,14 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_controller_1 = __importDefault(require("../controllers/auth.controller"));
-const verifyToken_1 = require("../middlewares/verifyToken");
+const middleware_1 = require("../middleware");
 const authRouter = (0, express_1.Router)();
 // login route
 authRouter.post(`/login`, auth_controller_1.default.login);
-// user route
-authRouter.post(`/user`, verifyToken_1.verifyAuthToken, auth_controller_1.default.loadUser);
+// refresh token
+authRouter.post(`/refresh-token`, auth_controller_1.default.refreshToken);
 // change password route
-authRouter.post(`/change-password`, verifyToken_1.verifyAuthToken, auth_controller_1.default.changePassword);
+authRouter.post(`/change-password`, middleware_1.isAuthenticate, auth_controller_1.default.changePassword);
 // update reset password
 authRouter.post(`/update-reset-pwd`, auth_controller_1.default.updateResetPass);
 // send reset link
