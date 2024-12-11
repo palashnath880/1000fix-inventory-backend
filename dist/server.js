@@ -32,6 +32,9 @@ function main() {
         app.use((0, cookie_parser_1.default)());
         const origins = CLIENT_URL || "*";
         app.use((0, cors_1.default)({ origin: origins, credentials: true }));
+        app.get("/", (req, res) => {
+            res.redirect(`https://1000fix.com/`);
+        });
         app.use(routes_1.default);
         app.listen(PORT, () => {
             console.log(`Server running on http://localhost:${PORT}`);

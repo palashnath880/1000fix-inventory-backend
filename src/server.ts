@@ -22,6 +22,10 @@ async function main() {
 
   app.use(cors({ origin: origins, credentials: true }));
 
+  app.get("/", (req, res) => {
+    res.redirect(`https://1000fix.com/`);
+  });
+
   app.use(routes);
 
   app.listen(PORT, () => {
