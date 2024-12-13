@@ -178,7 +178,7 @@ const refreshToken = async (req: Request, res: Response) => {
 
     return res.send({ ac_token });
   } catch (err) {
-    return res.status(400).send(err);
+    return res.status(401).send(err);
   }
 };
 
