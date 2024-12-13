@@ -163,9 +163,7 @@ const changePassword = async (
 const refreshToken = async (req: Request, res: Response) => {
   try {
     const REFRESH_SECRET_KEY: string = process.env.REFRESH_SECRET_KEY || "";
-    const { re_token } = req.cookies;
-
-    console.log(req.headers);
+    const re_token = req.headers.authorization;
 
     if (!re_token) {
       return res.status(401).send(`Access Denied. No refresh token provided.`);
@@ -173,12 +171,11 @@ const refreshToken = async (req: Request, res: Response) => {
 
     const decoded: any = await verify(re_token, REFRESH_SECRET_KEY);
 
-    console.log(decoded);
     const user = await prisma.user.findUnique({
       where: { id: decoded?.id },
     });
     const ac_token = await genAccessToken(user);
-    console.log(ac_token);
+
     return res.send({ ac_token });
   } catch (err) {
     return res.status(400).send(err);
