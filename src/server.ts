@@ -19,8 +19,8 @@ async function main() {
 
   const origins = CLIENT_URL || "*";
 
-  app.use(cors({ origin: origins, credentials: true }));
   app.use(cookieParser());
+  app.use(cors({ origin: origins, credentials: true }));
 
   app.get("/", (req, res) => {
     res.redirect(`https://1000fix.com/`);
