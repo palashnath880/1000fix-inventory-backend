@@ -16,11 +16,11 @@ export const prisma = new PrismaClient();
 async function main() {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
-  app.use(cookieParser());
 
   const origins = CLIENT_URL || "*";
 
   app.use(cors({ origin: origins, credentials: true }));
+  app.use(cookieParser());
 
   app.get("/", (req, res) => {
     res.redirect(`https://1000fix.com/`);
@@ -38,7 +38,7 @@ main()
     await prisma.$connect();
   })
   .catch(async (err) => {
-    console.error(`prisma error`, err);
+    console.error(`server error`, err);
     await prisma.$disconnect();
     process.exit(1);
   });
