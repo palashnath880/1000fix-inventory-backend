@@ -3,26 +3,21 @@ import { prisma } from "../server";
 // get average price by sku id
 const getAvgPrice = async (skuId: string) => {
   try {
-    const rows = await prisma.stock.findMany({
+    const totalQuantity = await prisma.stock.aggregate({
+      _sum: { quantity: true },
       where: { skuCodeId: skuId, type: "entry" },
-      select: {
-        price: true,
-      },
-      distinct: ["price"],
     });
-
-    const prices: number[] = [];
-    rows.forEach((item) => {
-      if (item?.price) {
-        prices.push(item.price);
-      }
-    });
-
-    const total = prices.reduce(
-      (totalValue, newValue) => totalValue + newValue,
+    const results = await prisma.$queryRaw<
+      { totalPrice: number }[]
+    >`SELECT SUM(quantity * price) as totalPrice FROM Stock WHERE skuCodeId = ${skuId} AND type = 'entry' `;
+    const totalPrice = results.reduce(
+      (total, i) => (i.totalPrice ? i.totalPrice + total : total + 0),
       0
     );
-    const avgPrice = total / prices.length;
+
+    const avgPrice = totalQuantity._sum.quantity
+      ? totalPrice / totalQuantity._sum.quantity
+      : 0;
     return parseFloat(avgPrice.toFixed(2));
   } catch (err) {
     throw new Error("error form the getAvgPrice function");

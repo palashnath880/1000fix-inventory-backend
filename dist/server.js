@@ -29,8 +29,8 @@ function main() {
     return __awaiter(this, void 0, void 0, function* () {
         app.use(body_parser_1.default.json());
         app.use(body_parser_1.default.urlencoded({ extended: true, limit: "50mb" }));
-        app.use((0, cookie_parser_1.default)());
         const origins = CLIENT_URL || "*";
+        app.use((0, cookie_parser_1.default)());
         app.use((0, cors_1.default)({ origin: origins, credentials: true }));
         app.get("/", (req, res) => {
             res.redirect(`https://1000fix.com/`);
@@ -46,7 +46,7 @@ main()
     yield exports.prisma.$connect();
 }))
     .catch((err) => __awaiter(void 0, void 0, void 0, function* () {
-    console.error(`prisma error`, err);
+    console.error(`server error`, err);
     yield exports.prisma.$disconnect();
     process.exit(1);
 }));

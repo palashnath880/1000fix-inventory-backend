@@ -14,21 +14,15 @@ const server_1 = require("../server");
 // get average price by sku id
 const getAvgPrice = (skuId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const rows = yield server_1.prisma.stock.findMany({
+        const totalQuantity = yield server_1.prisma.stock.aggregate({
+            _sum: { quantity: true },
             where: { skuCodeId: skuId, type: "entry" },
-            select: {
-                price: true,
-            },
-            distinct: ["price"],
         });
-        const prices = [];
-        rows.forEach((item) => {
-            if (item === null || item === void 0 ? void 0 : item.price) {
-                prices.push(item.price);
-            }
-        });
-        const total = prices.reduce((totalValue, newValue) => totalValue + newValue, 0);
-        const avgPrice = total / prices.length;
+        const results = yield server_1.prisma.$queryRaw `SELECT SUM(quantity * price) as totalPrice FROM Stock WHERE skuCodeId = ${skuId} AND type = 'entry' `;
+        const totalPrice = results.reduce((total, i) => (i.totalPrice ? i.totalPrice + total : total + 0), 0);
+        const avgPrice = totalQuantity._sum.quantity
+            ? totalPrice / totalQuantity._sum.quantity
+            : 0;
         return parseFloat(avgPrice.toFixed(2));
     }
     catch (err) {
