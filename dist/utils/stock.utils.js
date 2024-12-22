@@ -85,6 +85,7 @@ const getBranchDefective = (branchId, skuId) => __awaiter(void 0, void 0, void 0
     var _a, _b, _c, _d, _e;
     try {
         let quantity = 0;
+        const skuCode = yield getSku(skuId);
         // get generate defective quantity
         const defective = yield server_1.prisma.jobItem.aggregate({
             _sum: { quantity: true },

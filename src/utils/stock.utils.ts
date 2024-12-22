@@ -79,6 +79,8 @@ const getSellQuantity = async (branchId: string, skuId: string) => {
 const getBranchDefective = async (branchId: string, skuId: string) => {
   try {
     let quantity: number = 0;
+    const skuCode = await getSku(skuId);
+    if (!skuCode?.isDefective) return quantity;
 
     // get generate defective quantity
     const defective = await prisma.jobItem.aggregate({
