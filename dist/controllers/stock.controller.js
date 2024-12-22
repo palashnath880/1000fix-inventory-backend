@@ -51,6 +51,7 @@ const entryList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             where: {
                 type: "entry",
                 createdAt: { gte: new Date(fromDate), lte: new Date(toDate) },
+                skuCode: {},
             },
             select: {
                 price: true,

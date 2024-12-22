@@ -73,6 +73,7 @@ const entryList = async (
       where: {
         type: "entry",
         createdAt: { gte: new Date(fromDate), lte: new Date(toDate) },
+        skuCodeId: { not: null },
       },
       select: {
         price: true,

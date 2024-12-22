@@ -67,7 +67,15 @@ const deleteSkuCode = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const skuId = req.params.skuId;
         const result = yield server_1.prisma.skuCode.delete({
             where: { id: skuId },
-            include: { challanItems: true },
+            include: {
+                challanItems: true,
+                enStock: true,
+                faulty: true,
+                jobItems: true,
+                scrapItems: true,
+                stockItems: true,
+                stocks: true,
+            },
         });
         res.send(result);
     }
