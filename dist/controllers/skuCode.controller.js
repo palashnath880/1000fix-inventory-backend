@@ -65,7 +65,10 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 const deleteSkuCode = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const skuId = req.params.skuId;
-        const result = yield server_1.prisma.skuCode.delete({ where: { id: skuId } });
+        const result = yield server_1.prisma.skuCode.delete({
+            where: { id: skuId },
+            include: { challanItems: true },
+        });
         res.send(result);
     }
     catch (err) {

@@ -79,6 +79,7 @@ const entryList = async (
         createdAt: true,
         quantity: true,
         id: true,
+        skuCodeId: true,
         skuCode: {
           select: {
             name: true,

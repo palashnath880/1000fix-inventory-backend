@@ -57,6 +57,7 @@ const entryList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 createdAt: true,
                 quantity: true,
                 id: true,
+                skuCodeId: true,
                 skuCode: {
                     select: {
                         name: true,

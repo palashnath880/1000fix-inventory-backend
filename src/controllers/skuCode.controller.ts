@@ -68,7 +68,18 @@ const deleteSkuCode = async (
 ) => {
   try {
     const skuId = req.params.skuId;
-    const result = await prisma.skuCode.delete({ where: { id: skuId } });
+    const result = await prisma.skuCode.delete({
+      where: { id: skuId },
+      include: {
+        challanItems: true,
+        enStock: true,
+        faulty: true,
+        jobItems: true,
+        scrapItems: true,
+        stockItems: true,
+        stocks: true,
+      },
+    });
     res.send(result);
   } catch (err) {
     res.status(400).send(err);
