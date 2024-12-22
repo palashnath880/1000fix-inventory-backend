@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = require("../server");
+// create sku
 const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const skuCode = req.body;
@@ -37,6 +38,7 @@ const create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
+// get all sku
 const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const search = req.query.search;
@@ -62,6 +64,29 @@ const get = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send(err);
     }
 });
+// update sku
+const update = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const skuId = req.params.skuId;
+        const data = req.body;
+        // if update name
+        if (data === null || data === void 0 ? void 0 : data.name) {
+            const getSku = yield server_1.prisma.skuCode.findFirst({
+                where: { name: data.name, id: { not: skuId } },
+            });
+            if (getSku) {
+                return res.status(409).send({ message: `${data.name} already exists` });
+            }
+        }
+        // update
+        yield server_1.prisma.skuCode.update({ data: data, where: { id: skuId } });
+        res.send({ message: `Updated` });
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+});
+// delete sku
 const deleteSkuCode = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const skuId = req.params.skuId;
@@ -83,4 +108,4 @@ const deleteSkuCode = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.status(400).send(err);
     }
 });
-exports.default = { create, get, deleteSkuCode };
+exports.default = { create, get, deleteSkuCode, update };

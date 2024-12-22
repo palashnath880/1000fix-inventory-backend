@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
+import { SkuCode } from "@prisma/client";
 
-const create = async (
-  req: Request<{}, {}, { name: string; itemId: string; isDefective: boolean }>,
-  res: Response
-) => {
+// create sku
+const create = async (req: Request<{}, {}, SkuCode>, res: Response) => {
   try {
     const skuCode = req.body;
 
@@ -34,6 +33,7 @@ const create = async (
   }
 };
 
+// get all sku
 const get = async (
   req: Request<{}, {}, {}, { search: string }>,
   res: Response
@@ -62,6 +62,34 @@ const get = async (
   }
 };
 
+// update sku
+const update = async (
+  req: Request<{ skuId: string }, {}, SkuCode>,
+  res: Response
+) => {
+  try {
+    const skuId = req.params.skuId;
+    const data = req.body;
+
+    // if update name
+    if (data?.name) {
+      const getSku = await prisma.skuCode.findFirst({
+        where: { name: data.name, id: { not: skuId } },
+      });
+      if (getSku) {
+        return res.status(409).send({ message: `${data.name} already exists` });
+      }
+    }
+
+    // update
+    await prisma.skuCode.update({ data: data, where: { id: skuId } });
+    res.send({ message: `Updated` });
+  } catch (err) {
+    res.status(400).send(err);
+  }
+};
+
+// delete sku
 const deleteSkuCode = async (
   req: Request<{ skuId: string }>,
   res: Response
@@ -86,4 +114,4 @@ const deleteSkuCode = async (
   }
 };
 
-export default { create, get, deleteSkuCode };
+export default { create, get, deleteSkuCode, update };

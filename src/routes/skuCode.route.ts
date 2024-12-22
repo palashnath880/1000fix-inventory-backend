@@ -9,6 +9,9 @@ skuCodeRouter.post(`/`, skuCodeController.create);
 // get
 skuCodeRouter.get(`/`, skuCodeController.get);
 
+// update
+skuCodeRouter.put(`/:skuId`, skuCodeController.update);
+
 // delete
 skuCodeRouter.delete(`/:skuId`, skuCodeController.deleteSkuCode);
 

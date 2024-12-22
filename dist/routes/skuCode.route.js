@@ -10,6 +10,8 @@ const skuCodeRouter = (0, express_1.Router)();
 skuCodeRouter.post(`/`, skuCode_controller_1.default.create);
 // get
 skuCodeRouter.get(`/`, skuCode_controller_1.default.get);
+// update
+skuCodeRouter.put(`/:skuId`, skuCode_controller_1.default.update);
 // delete
 skuCodeRouter.delete(`/:skuId`, skuCode_controller_1.default.deleteSkuCode);
 exports.default = skuCodeRouter;
