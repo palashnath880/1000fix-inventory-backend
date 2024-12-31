@@ -1,5 +1,16 @@
 import { prisma } from "../server";
 
+type QueryRow = {
+  entry: number | null;
+  received: number | null;
+  transfer: number | null;
+  faulty_good: number | null;
+  purchase_return: number | null;
+  faulty_re: number | null;
+  engineer_transfer: number | null;
+  engineer_return: number | null;
+};
+
 // get average price by sku id
 const getAvgPrice = async (skuId: string) => {
   try {
@@ -217,87 +228,68 @@ const branchStockBySkuId = async (
   try {
     let quantity: number = 0;
 
-    // entry stock
-    const entry = await prisma.stock.aggregate({
-      _sum: { quantity: true },
-      where: { type: "entry", senderId: branchId, skuCodeId: skuId },
-    });
-    if (entry?._sum?.quantity) quantity += entry._sum.quantity;
-
-    // received stock
-    const received = await prisma.stock.aggregate({
-      _sum: { quantity: true },
-      where: {
-        type: "transfer",
-        receiverId: branchId,
-        skuCodeId: skuId,
-        status: "received",
-      },
-    });
-    if (received?._sum?.quantity) quantity += received._sum.quantity;
-
-    // transfer stock
-    const transfer = await prisma.stock.aggregate({
-      _sum: { quantity: true },
-      where: {
-        type: "transfer",
-        senderId: branchId,
-        skuCodeId: skuId,
-        status: { in: ["open", "approved", "received"] },
-      },
-    });
-    if (transfer?._sum?.quantity) quantity -= transfer._sum.quantity;
-
-    // faulty return stock
-    const faultyRe = await prisma.faulty.aggregate({
-      _sum: { quantity: true },
-      where: {
-        branchId: branchId,
-        status: { in: ["open", "received"] },
-        skuCodeId: skuId,
-      },
-    });
-    if (faultyRe?._sum?.quantity) quantity -= faultyRe._sum.quantity;
-
-    // from faulty
-    const faultyGood = await prisma.stock.aggregate({
-      _sum: { quantity: true },
-      where: { senderId: branchId, skuCodeId: skuId, type: "fromFaulty" },
-    });
-    if (faultyGood?._sum?.quantity) quantity += faultyGood._sum.quantity;
-
-    // purchase return
-    const puReturn = await prisma.stock.aggregate({
-      _sum: { quantity: true },
-      where: { type: "purchaseReturn", senderId: branchId, skuCodeId: skuId },
-    });
-    if (puReturn?._sum?.quantity) quantity -= puReturn._sum.quantity;
-
-    // engineer transfer
-    const engineer = await prisma.engineerStock.aggregate({
-      _sum: { quantity: true },
-      where: { skuCodeId: skuId, type: "transfer", branchId: branchId },
-    });
-    if (engineer?._sum?.quantity) quantity -= engineer._sum.quantity;
-
-    // engineer return
-    const enReturn = await prisma.engineerStock.aggregate({
-      _sum: { quantity: true },
-      where: {
-        skuCodeId: skuId,
-        type: "return",
-        branchId: branchId,
-        status: "received",
-      },
-    });
-    if (enReturn?._sum?.quantity) quantity += enReturn._sum.quantity;
-
-    const skuCode = await getSku(skuId);
-    const avgPrice = await getAvgPrice(skuId);
     const sellQuantity = await getSellQuantity(branchId, skuId);
     const defective = await getBranchDefective(branchId, skuId);
     const faulty = await getFaultyStock(branchId, skuId, isAdmin);
+    const skuCode = await getSku(skuId);
+    const avgPrice = await getAvgPrice(skuId);
 
+    const rows = await prisma.$queryRaw<QueryRow[]>`SELECT
+        (SELECT SUM(s.quantity)
+         FROM Stock as s
+         WHERE s.type = 'entry'
+          AND s.senderId = ${branchId} 
+          AND s.skuCodeId = ${skuId}) as entry,
+        (SELECT SUM(s.quantity)
+         FROM Stock as s
+         WHERE s.type = 'transfer'
+          AND s.receiverId = ${branchId} 
+          AND s.status = 'received'
+          AND s.skuCodeId = ${skuId}) as received,
+        (SELECT SUM(s.quantity)
+         FROM Stock as s
+         WHERE s.type = 'transfer'
+          AND s.senderId = ${branchId} 
+          AND s.status IN ("open", "approved", "received")
+          AND s.skuCodeId = ${skuId}) as transfer,
+        (SELECT SUM(s.quantity)
+         FROM Stock as s
+         WHERE s.type = 'fromFaulty' AND s.senderId = ${branchId} AND s.skuCodeId = ${skuId}) as faulty_good,
+        (SELECT SUM(s.quantity)
+         FROM Stock as s
+         WHERE s.type = 'purchaseReturn' AND s.senderId = ${branchId} AND s.skuCodeId = ${skuId}) as purchase_return,
+        (SELECT SUM(f.quantity)
+         FROM Faulty as f
+         WHERE f.branchId = ${branchId} AND f.status IN ("open", "received") AND f.skuCodeId = ${skuId}) as faulty_re,
+        (SELECT SUM(en.quantity)
+         FROM EngineerStock as en
+         WHERE en.branchId = ${branchId} AND en.type = 'transfer' AND en.status IN ("open", "received") AND en.skuCodeId = ${skuId}) as engineer_transfer,
+        (SELECT SUM(en.quantity)
+         FROM EngineerStock as en
+         WHERE en.branchId = ${branchId} AND en.type = 'return' AND en.status = "received" AND en.skuCodeId = ${skuId}) as engineer_return
+      `;
+
+    for (const row of rows) {
+      const entry = row.entry || 0;
+      const received = row.received || 0;
+      const transfer = row.transfer || 0;
+      const faultyGood = row.faulty_good || 0;
+      const purchaseReturn = row.purchase_return || 0;
+      const faultyRe = row.faulty_re || 0;
+      const engineerTransfer = row.engineer_transfer || 0;
+      const engineerReturn = row.engineer_return || 0;
+      quantity =
+        entry +
+        received +
+        engineerReturn +
+        faultyGood -
+        transfer -
+        purchaseReturn -
+        faultyRe -
+        engineerTransfer;
+    }
+    // minus sell quantity
+    if (sellQuantity) quantity -= sellQuantity;
     const result: any = {
       skuCode,
       avgPrice,
@@ -305,14 +297,102 @@ const branchStockBySkuId = async (
       defective,
       faulty,
     };
+    result.quantity = parseFloat(result.quantity.toFixed(2));
+
+    // quantity = 0;
+
+    // // entry stock
+    // const entry = await prisma.stock.aggregate({
+    //   _sum: { quantity: true },
+    //   where: { type: "entry", senderId: branchId, skuCodeId: skuId },
+    // });
+    // if (entry?._sum?.quantity) quantity += entry._sum.quantity;
+    // console.log(`en`, entry._sum.quantity);
+
+    // // received stock
+    // const received = await prisma.stock.aggregate({
+    //   _sum: { quantity: true },
+    //   where: {
+    //     type: "transfer",
+    //     receiverId: branchId,
+    //     skuCodeId: skuId,
+    //     status: "received",
+    //   },
+    // });
+    // if (received?._sum?.quantity) quantity += received._sum.quantity;
+    // console.log(`re`, received._sum.quantity);
+
+    // // transfer stock
+    // const transfer = await prisma.stock.aggregate({
+    //   _sum: { quantity: true },
+    //   where: {
+    //     type: "transfer",
+    //     senderId: branchId,
+    //     skuCodeId: skuId,
+    //     status: { in: ["open", "approved", "received"] },
+    //   },
+    // });
+    // if (transfer?._sum?.quantity) quantity -= transfer._sum.quantity;
+    // console.log(`transfer`, transfer._sum.quantity);
+
+    // // faulty return stock
+    // const faultyRe = await prisma.faulty.aggregate({
+    //   _sum: { quantity: true },
+    //   where: {
+    //     branchId: branchId,
+    //     status: { in: ["open", "received"] },
+    //     skuCodeId: skuId,
+    //   },
+    // });
+    // if (faultyRe?._sum?.quantity) quantity -= faultyRe._sum.quantity;
+
+    // // from faulty
+    // const faultyGood = await prisma.stock.aggregate({
+    //   _sum: { quantity: true },
+    //   where: { senderId: branchId, skuCodeId: skuId, type: "fromFaulty" },
+    // });
+    // if (faultyGood?._sum?.quantity) quantity += faultyGood._sum.quantity;
+
+    // // purchase return
+    // const puReturn = await prisma.stock.aggregate({
+    //   _sum: { quantity: true },
+    //   where: { type: "purchaseReturn", senderId: branchId, skuCodeId: skuId },
+    // });
+    // if (puReturn?._sum?.quantity) quantity -= puReturn._sum.quantity;
+    // console.log(`pureturn`, puReturn._sum.quantity);
+
+    // // engineer transfer
+    // const engineer = await prisma.engineerStock.aggregate({
+    //   _sum: { quantity: true },
+    //   where: {
+    //     skuCodeId: skuId,
+    //     type: "transfer",
+    //     branchId: branchId,
+    //     status: { in: ["open", "received"] },
+    //   },
+    // });
+    // if (engineer?._sum?.quantity) quantity -= engineer._sum.quantity;
+    // console.log(`en_transfer`, engineer._sum.quantity);
+
+    // // engineer return
+    // const enReturn = await prisma.engineerStock.aggregate({
+    //   _sum: { quantity: true },
+    //   where: {
+    //     skuCodeId: skuId,
+    //     type: "return",
+    //     branchId: branchId,
+    //     status: "received",
+    //   },
+    // });
+    // if (enReturn?._sum?.quantity) quantity += enReturn._sum.quantity;
+    // console.log(`en_return`, enReturn._sum.quantity);
 
     // minus sell quantity
-    if (sellQuantity) result.quantity -= sellQuantity;
-
-    result.quantity = parseFloat(result.quantity.toFixed(2));
+    // if (sellQuantity) result.quantity -= sellQuantity;
 
     return result;
   } catch (err) {
+    console.log(err);
     throw new Error("Stock error");
   }
 };
