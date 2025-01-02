@@ -103,6 +103,7 @@ const jobList = async (
           },
         },
       },
+      orderBy: [{ createdAt: "desc" }],
     });
 
     res.send(result);
