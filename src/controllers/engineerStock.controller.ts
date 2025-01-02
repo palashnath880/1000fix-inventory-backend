@@ -69,6 +69,7 @@ const brTrReport = async (
           },
         },
       },
+      orderBy: [{ createdAt: "desc" }],
     });
 
     res.send(result);
