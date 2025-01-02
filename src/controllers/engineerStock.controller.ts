@@ -457,6 +457,7 @@ const sendDeReport = async (
           },
         },
       },
+      orderBy: [{ createdAt: "desc" }],
     });
     return res.send(result);
   } catch (err) {
@@ -552,6 +553,7 @@ const cscDeReport = async (
           },
         },
       },
+      orderBy: [{ createdAt: "desc" }],
     });
 
     res.send(result);
