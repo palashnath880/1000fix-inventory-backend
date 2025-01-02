@@ -152,6 +152,7 @@ const jobSummaryList = async (
           },
         },
       },
+      orderBy: [{ createdAt: "desc" }],
     });
 
     res.send(result);
