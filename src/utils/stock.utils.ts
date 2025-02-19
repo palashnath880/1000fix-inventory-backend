@@ -402,6 +402,7 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
   try {
     let quantity = 0;
     let defectiveQuantity = 0;
+
     // received stock
     const received = await prisma.engineerStock.aggregate({
       _sum: { quantity: true },
@@ -464,7 +465,13 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
 
     if (sell?._sum?.quantity) quantity -= sell?._sum?.quantity;
 
-    return { quantity, skuCode, avgPrice, defective: defectiveQuantity };
+    return {
+      quantity,
+      skuCode,
+      avgPrice,
+      defective: defectiveQuantity,
+      meta: { sell, defective, sendDe },
+    };
   } catch (err: any) {
     throw new Error(err);
   }
