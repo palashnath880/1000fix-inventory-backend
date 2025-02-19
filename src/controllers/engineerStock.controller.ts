@@ -475,6 +475,7 @@ const cscDefective = async (req: Request, res: Response) => {
         branchId,
         status: "open",
         type: "defective",
+        skuCode: { isDefective: true },
       },
       include: {
         engineer: true,
