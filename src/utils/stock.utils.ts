@@ -451,7 +451,7 @@ const engineerStockBySkuId = async (userId: string, skuId: string) => {
       where: {
         engineerId: userId,
         type: "defective",
-        skuCodeId: skuId,
+        skuCode: { isDefective: true, id: skuId },
         status: { in: ["open", "received"] },
       },
     });
