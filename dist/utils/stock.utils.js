@@ -425,7 +425,7 @@ const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0
             where: {
                 engineerId: userId,
                 type: "defective",
-                skuCodeId: skuId,
+                skuCode: { isDefective: true, id: skuId },
                 status: { in: ["open", "received"] },
             },
         });
@@ -439,7 +439,13 @@ const engineerStockBySkuId = (userId, skuId) => __awaiter(void 0, void 0, void 0
             quantity -= (_d = returnStock === null || returnStock === void 0 ? void 0 : returnStock._sum) === null || _d === void 0 ? void 0 : _d.quantity;
         if ((_e = sell === null || sell === void 0 ? void 0 : sell._sum) === null || _e === void 0 ? void 0 : _e.quantity)
             quantity -= (_f = sell === null || sell === void 0 ? void 0 : sell._sum) === null || _f === void 0 ? void 0 : _f.quantity;
-        return { quantity, skuCode, avgPrice, defective: defectiveQuantity };
+        return {
+            quantity,
+            skuCode,
+            avgPrice,
+            defective: defectiveQuantity,
+            meta: { sell, defective, sendDe },
+        };
     }
     catch (err) {
         throw new Error(err);

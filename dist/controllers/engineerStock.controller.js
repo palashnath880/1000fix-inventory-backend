@@ -64,6 +64,7 @@ const brTrReport = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                     },
                 },
             },
+            orderBy: [{ createdAt: "desc" }],
         });
         res.send(result);
     }
@@ -301,7 +302,7 @@ const getByEngineer = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const engineer = yield server_1.prisma.user.findUnique({ where: { id } });
         for (const skuCode of skuCodes) {
             const stock = yield (0, stock_utils_1.engineerStockBySkuId)(id, skuCode.id);
-            if (stock.quantity > 0 || stock.defective > 0) {
+            if (stock.quantity !== 0 || stock.defective !== 0) {
                 stockArr.push(Object.assign(Object.assign({}, stock), { engineer }));
             }
         }
@@ -353,6 +354,7 @@ const sendDeReport = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                     },
                 },
             },
+            orderBy: [{ createdAt: "desc" }],
         });
         return res.send(result);
     }
@@ -370,6 +372,7 @@ const cscDefective = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 branchId,
                 status: "open",
                 type: "defective",
+                skuCode: { isDefective: true },
             },
             include: {
                 engineer: true,
@@ -431,6 +434,7 @@ const cscDeReport = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     },
                 },
             },
+            orderBy: [{ createdAt: "desc" }],
         });
         res.send(result);
     }

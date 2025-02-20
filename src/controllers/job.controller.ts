@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
 import moment from "moment-timezone";
+import { Prisma } from "@prisma/client";
 
 type JobItem = {
   price: number;
@@ -49,12 +50,13 @@ const create = async (req: Request<{}, {}, JobType>, res: Response) => {
 // job list
 const jobList = async (
   req: Request<
-    { id: string },
+    {},
     {},
     {},
     {
       fromDate: string;
       toDate: string;
+      skuId: string;
       filter: "" | "engineer" | "branch";
       engineers: string[];
     }
@@ -64,6 +66,7 @@ const jobList = async (
   try {
     const branchId = req.cookies?.user?.branchId;
     const filter = req.query.filter;
+    const skuId = req.query.skuId;
     let engineers = req.query.engineers || [];
     if (typeof engineers === "string") engineers = [engineers];
 
@@ -71,29 +74,29 @@ const jobList = async (
 
     fromDate = fromDate
       ? new Date(fromDate)
-      : new Date(moment().tz("Asia/Dhaka").format("YYYY-MM-DD"));
+      : new Date(moment().format("YYYY-MM-DD"));
 
     let toDate: any = req.query.toDate;
     toDate = toDate
       ? new Date(moment(toDate).add(1, "days").format("YYYY-MM-DD"))
-      : new Date(moment.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
+      : new Date(moment().add(1, "days").format("YYYY-MM-DD"));
 
-    let search = {};
-    if (filter === "branch") search = { branchId: branchId, engineerId: null };
-    if (filter === "engineer") search = { engineerId: { in: engineers } };
-    if (filter === "engineer" && engineers.length <= 0)
-      search = { branchId, engineerId: { not: null } };
-    if (!filter) search = { branchId };
+    // where
+    const where: Prisma.JobWhereInput = {
+      createdAt: { gte: fromDate, lte: toDate },
+      branchId,
+    };
+    if (skuId) where.items = { some: { skuCodeId: skuId } }; // filter by sku id
+
+    if (filter === "branch") {
+      where.engineerId = null;
+    } else if (filter === "engineer") {
+      where.engineerId = { in: engineers };
+    }
 
     // get job entry list
     const result = await prisma.job.findMany({
-      where: {
-        AND: [search],
-        createdAt: {
-          gte: fromDate,
-          lte: toDate,
-        },
-      },
+      where,
       include: {
         items: { include: { skuCode: { include: { item: true } } } },
         engineer: {
@@ -108,7 +111,6 @@ const jobList = async (
 
     res.send(result);
   } catch (err) {
-    console.log(err);
     res.status(400).send(err);
   }
 };

@@ -46,35 +46,34 @@ const jobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const branchId = (_b = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.branchId;
         const filter = req.query.filter;
+        const skuId = req.query.skuId;
         let engineers = req.query.engineers || [];
         if (typeof engineers === "string")
             engineers = [engineers];
         let fromDate = req.query.fromDate;
         fromDate = fromDate
             ? new Date(fromDate)
-            : new Date((0, moment_timezone_1.default)().tz("Asia/Dhaka").format("YYYY-MM-DD"));
+            : new Date((0, moment_timezone_1.default)().format("YYYY-MM-DD"));
         let toDate = req.query.toDate;
         toDate = toDate
             ? new Date((0, moment_timezone_1.default)(toDate).add(1, "days").format("YYYY-MM-DD"))
-            : new Date(moment_timezone_1.default.tz("Asia/Dhaka").add(1, "days").format("YYYY-MM-DD"));
-        let search = {};
-        if (filter === "branch")
-            search = { branchId: branchId, engineerId: null };
-        if (filter === "engineer")
-            search = { engineerId: { in: engineers } };
-        if (filter === "engineer" && engineers.length <= 0)
-            search = { branchId, engineerId: { not: null } };
-        if (!filter)
-            search = { branchId };
+            : new Date((0, moment_timezone_1.default)().add(1, "days").format("YYYY-MM-DD"));
+        // where
+        const where = {
+            createdAt: { gte: fromDate, lte: toDate },
+            branchId,
+        };
+        if (skuId)
+            where.items = { some: { skuCodeId: skuId } }; // filter by sku id
+        if (filter === "branch") {
+            where.engineerId = null;
+        }
+        else if (filter === "engineer") {
+            where.engineerId = { in: engineers };
+        }
         // get job entry list
         const result = yield server_1.prisma.job.findMany({
-            where: {
-                AND: [search],
-                createdAt: {
-                    gte: fromDate,
-                    lte: toDate,
-                },
-            },
+            where,
             include: {
                 items: { include: { skuCode: { include: { item: true } } } },
                 engineer: {
@@ -84,11 +83,11 @@ const jobList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     },
                 },
             },
+            orderBy: [{ createdAt: "desc" }],
         });
         res.send(result);
     }
     catch (err) {
-        console.log(err);
         res.status(400).send(err);
     }
 });
@@ -118,6 +117,7 @@ const jobSummaryList = (req, res) => __awaiter(void 0, void 0, void 0, function*
                     },
                 },
             },
+            orderBy: [{ createdAt: "desc" }],
         });
         res.send(result);
     }
